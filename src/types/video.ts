@@ -31,6 +31,28 @@ export interface VideoMetadata {
   file_path: string;
   thumbnail_url: string;
   status: 'processing' | 'completed' | 'failed';
+  effects_applied?: string[];
+}
+
+export interface PostFXJob {
+  id: string;
+  sourceVideoId: string;
+  effect: 'cathode-ray';
+  status: 'queued' | 'processing' | 'completed' | 'failed';
+  progress?: number;
+  outputVideoId?: string;
+  error?: string;
+  created_at: string;
+}
+
+export interface CathodeRayParams {
+  preset: 'static' | 'fluctuating' | 'degraded' | 'custom';
+  custom_expression: string;
+  screen_curvature: number;
+  scanline_intensity: number;
+  glow_amount: number;
+  color_bleeding: number;
+  noise_amount: number;
 }
 
 export interface GenerationOptions {

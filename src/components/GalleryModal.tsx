@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { VideoMetadata } from '@/types/video';
+import { PostFXModal } from './PostFXModal';
 
 interface GalleryModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<VideoMetadata | null>(null);
   const [stats, setStats] = useState({ totalVideos: 0, totalSize: 0 });
+  const [isPostFXModalOpen, setIsPostFXModalOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -190,22 +192,33 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
                       <span className="font-medium">{selectedVideo.generation_params.duration}s</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Aspect Ratio:</span>
-                      <span className="font-medium">{selectedVideo.generation_params.aspect_ratio}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Motion:</span>
-                      <span className="font-medium">{selectedVideo.generation_params.motion_intensity}</span>
+                      <span className="text-gray-500">Camera Fixed:</span>
+                      <span className="font-medium">{selectedVideo.generation_params.camera_fixed ? 'Yes' : 'No'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Created:</span>
                       <span className="font-medium">{new Date(selectedVideo.created_at).toLocaleDateString()}</span>
                     </div>
+                    {selectedVideo.effects_applied && selectedVideo.effects_applied.length > 0 && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Effects Applied:</span>
+                        <span className="font-medium text-purple-600">{selectedVideo.effects_applied.join(', ')}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Actions */}
                 <div className="space-y-2">
+                  <button
+                    onClick={() => setIsPostFXModalOpen(true)}
+                    className="w-full py-2 px-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <span>PostFX Queue</span>
+                  </button>
                   <button
                     onClick={() => downloadVideo(selectedVideo)}
                     className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
@@ -224,6 +237,17 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
           )}
         </div>
       </div>
+
+      {/* PostFX Modal */}
+      <PostFXModal
+        isOpen={isPostFXModalOpen}
+        onClose={() => setIsPostFXModalOpen(false)}
+        selectedVideo={selectedVideo}
+        onVideoProcessed={() => {
+          loadVideos();
+          onRefresh();
+        }}
+      />
     </div>
   );
 };
