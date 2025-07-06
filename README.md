@@ -1,13 +1,13 @@
 # Seedance Video Generator
 
-A local MVP application for generating high-quality videos from text prompts using ByteDance's Seedance AI model via FAL.ai. This application provides a clean interface for video generation with local storage and gallery management.
+A local MVP application for generating high-quality videos from images and text prompts using ByteDance's Seedance AI model via FAL.ai. This application provides a clean interface for image-to-video generation with local storage and gallery management.
 
 ## Features
 
-- **Text-to-Video Generation**: Generate 5-10 second videos from descriptive prompts
+- **Image-to-Video Generation**: Generate 5-10 second videos from uploaded images with descriptive text prompts
 - **Multiple Quality Options**: Support for 480p and 720p resolutions
-- **Flexible Aspect Ratios**: 16:9, 9:16, and 1:1 aspect ratio support
-- **Motion Control**: Adjustable motion intensity (0.0 - 1.0)
+- **Camera Control**: Fixed camera position option for less motion
+- **Image Processing**: Automatic image optimization and base64 conversion
 - **Local Storage**: Videos automatically saved to `./output/` directory
 - **Gallery Management**: Browse, preview, download, and delete generated videos
 - **Progress Tracking**: Real-time generation progress with queue updates
@@ -15,10 +15,10 @@ A local MVP application for generating high-quality videos from text prompts usi
 
 ## Technology Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15.3.5, React 18, TypeScript, Tailwind CSS
 - **API Integration**: FAL.ai client with server-side proxy
 - **Storage**: Local file system with JSON metadata
-- **State Management**: React hooks with local state
+- **State Management**: Zustand for client state, React hooks
 
 ## Prerequisites
 
@@ -63,16 +63,15 @@ A local MVP application for generating high-quality videos from text prompts usi
 
 ### Generating Videos
 
-1. Enter a descriptive prompt in the text area
-2. Adjust settings:
+1. **Upload an image**: Click to upload a PNG, JPG, or WEBP image (up to 10MB)
+2. **Enter a descriptive prompt**: Describe how you want the image to move and animate
+3. **Adjust settings**:
    - **Duration**: 5s ($0.18) or 10s ($0.36)
    - **Resolution**: 480p or 720p
-   - **Aspect Ratio**: 16:9 (landscape), 9:16 (portrait), or 1:1 (square)
-   - **Motion Intensity**: 0.0 (subtle) to 1.0 (dynamic)
-   - **Prompt Optimizer**: Enable for enhanced prompts
-3. Click "Generate Video"
-4. Wait for generation to complete (progress bar shows status)
-5. Video is automatically saved to `./output/videos/`
+   - **Camera Fixed**: Enable for less camera movement (more stable)
+4. Click "Generate Video"
+5. Wait for generation to complete (progress bar shows status)
+6. Video is automatically saved to `./output/videos/`
 
 ### Managing Videos
 
@@ -89,22 +88,26 @@ A local MVP application for generating high-quality videos from text prompts usi
 /SEEDANCE-FAL/
 ├── src/
 │   ├── app/
-│   │   ├── api/fal/proxy/route.ts     # FAL.ai API proxy
-│   │   ├── api/videos/save/route.ts   # Video storage API
-│   │   ├── layout.tsx                 # App layout
-│   │   ├── page.tsx                   # Main page
-│   │   └── globals.css                # Global styles
+│   │   ├── api/
+│   │   │   ├── fal/proxy/[[...path]]/  # FAL.ai API proxy
+│   │   │   └── videos/save/route.ts    # Video storage API
+│   │   ├── layout.tsx                  # App layout
+│   │   ├── page.tsx                    # Main page
+│   │   └── globals.css                 # Global styles
 │   ├── components/
-│   │   ├── VideoGenerationForm.tsx    # Generation form
-│   │   └── GalleryModal.tsx           # Video gallery
+│   │   ├── VideoGenerationForm.tsx     # Image-to-video generation form
+│   │   └── GalleryModal.tsx            # Video gallery modal
 │   ├── lib/
-│   │   ├── fal-client.ts              # FAL.ai client
-│   │   └── file-manager.ts            # Local file management
+│   │   └── fal-client.ts               # FAL.ai client with retry logic
 │   └── types/
-│       └── video.ts                   # TypeScript interfaces
+│       └── video.ts                    # TypeScript interfaces
+├── docs/
+│   └── SEEDANCE-DEVTEAM-HANDOFF.md     # Technical specification
 ├── output/
-│   ├── videos/                        # Generated video files
-│   └── metadata.json                  # Video metadata
+│   └── videos/                         # Generated video files
+├── public/
+│   ├── videos/                         # Public video storage
+│   └── metadata.json                   # Video metadata
 ├── package.json
 ├── next.config.js
 ├── tailwind.config.js
@@ -120,7 +123,7 @@ A local MVP application for generating high-quality videos from text prompts usi
 
 ### Video Settings
 
-- **Model**: Uses `fal-ai/seedance/v1/lite/image-to-video`
+- **Model**: Uses `fal-ai/bytedance/seedance/v1/lite/image-to-video`
 - **Cost**: $0.18 per 5-second 720p video
 - **Formats**: MP4 with H.264 encoding
 - **Frame Rate**: 24 FPS
@@ -148,9 +151,12 @@ The metadata file contains:
 
 ### Error Messages
 
-- **"Prompt is required"**: Enter a text description before generating
+- **"Upload Image First"**: You must upload an image before generating a video
+- **"Add Description"**: Enter a text description of how the image should animate
 - **"Failed to download video"**: Network issue or FAL.ai service unavailable
 - **"Video not found"**: File may have been moved or deleted manually
+- **"Image file size must be less than 10MB"**: Choose a smaller image file
+- **"Please select a valid image file"**: Only PNG, JPG, and WEBP formats are supported
 
 ## Deployment
 
@@ -195,4 +201,5 @@ This project is for personal/local use. Check FAL.ai terms for commercial usage.
 
 ## Version History
 
-- **v1.0.0**: Initial MVP release with core video generation and gallery features
+- **v0.1.0**: Initial MVP release with image-to-video generation and gallery features
+- **Documentation Updated**: January 2025 - README updated to reflect current implementation
