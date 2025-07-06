@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { QueuedRequest, QueueStats } from '@/types/queue';
 import { VideoGenerationRequest } from '@/types/video';
+import { notificationHelpers } from './notification-store';
 
 interface QueueStore {
   // State
@@ -8,6 +9,7 @@ interface QueueStore {
   stats: QueueStats;
   isLoading: boolean;
   error: string | null;
+  previousRequests: QueuedRequest[];
   
   // Actions
   addToQueue: (request: VideoGenerationRequest) => Promise<string>;
@@ -18,6 +20,10 @@ interface QueueStore {
   // Auto-refresh
   isAutoRefreshEnabled: boolean;
   setAutoRefresh: (enabled: boolean) => void;
+  
+  // Notification callbacks
+  onGalleryOpen?: () => void;
+  setOnGalleryOpen: (callback: () => void) => void;
 }
 
 const initialStats: QueueStats = {
@@ -34,7 +40,9 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
   stats: initialStats,
   isLoading: false,
   error: null,
+  previousRequests: [],
   isAutoRefreshEnabled: false,
+  onGalleryOpen: undefined,
 
   // Add request to queue
   addToQueue: async (request: VideoGenerationRequest) => {
@@ -98,9 +106,49 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
       }
 
       const data = await response.json();
+      const newRequests = data.queue || [];
+      const currentState = get();
+      const previousRequests = currentState.requests;
+      
+      // Detect completed jobs
+      const newlyCompleted = newRequests.filter((newReq: QueuedRequest) => 
+        newReq.status === 'completed' &&
+        previousRequests.find((prevReq: QueuedRequest) => 
+          prevReq.id === newReq.id && prevReq.status === 'processing'
+        )
+      );
+      
+      // Detect failed jobs
+      const newlyFailed = newRequests.filter((newReq: QueuedRequest) => 
+        newReq.status === 'failed' &&
+        previousRequests.find((prevReq: QueuedRequest) => 
+          prevReq.id === newReq.id && prevReq.status === 'processing'
+        )
+      );
+      
+      // Trigger notifications for completed jobs
+      newlyCompleted.forEach((request: QueuedRequest) => {
+        notificationHelpers.videoGenerationSuccess(
+          request.request.prompt,
+          () => {
+            if (currentState.onGalleryOpen) {
+              currentState.onGalleryOpen();
+            }
+          }
+        );
+      });
+      
+      // Trigger notifications for failed jobs
+      newlyFailed.forEach((request: QueuedRequest) => {
+        notificationHelpers.videoGenerationError(
+          request.request.prompt,
+          request.error
+        );
+      });
       
       set({
-        requests: data.queue || [],
+        requests: newRequests,
+        previousRequests: previousRequests,
         stats: data.stats || initialStats,
         isLoading: false,
         error: null,
@@ -118,6 +166,9 @@ export const useQueueStore = create<QueueStore>((set, get) => ({
 
   // Auto-refresh controls
   setAutoRefresh: (enabled: boolean) => set({ isAutoRefreshEnabled: enabled }),
+  
+  // Notification callbacks
+  setOnGalleryOpen: (callback: () => void) => set({ onGalleryOpen: callback }),
 }));
 
 // Auto-refresh functionality

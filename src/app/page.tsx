@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VideoGenerationForm } from '@/components/VideoGenerationForm';
 import { GalleryModal } from '@/components/GalleryModal';
 import { QueueDisplay } from '@/components/QueueDisplay';
+import { ToastContainer } from '@/components/ToastNotification';
 import { useQueueStore } from '@/lib/queue-store';
+import { useNotificationStore } from '@/lib/notification-store';
 import { VideoGenerationRequest } from '@/types/video';
 
 export default function Home() {
@@ -13,7 +15,13 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const { addToQueue, isLoading } = useQueueStore();
+  const { addToQueue, isLoading, setOnGalleryOpen } = useQueueStore();
+  const { toasts, removeNotification } = useNotificationStore();
+
+  // Setup gallery open callback
+  useEffect(() => {
+    setOnGalleryOpen(() => setIsGalleryOpen(true));
+  }, [setOnGalleryOpen]);
 
   const handleGenerate = async (request: VideoGenerationRequest) => {
     setError(null);
@@ -203,6 +211,12 @@ export default function Home() {
         isOpen={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
         onRefresh={handleRefresh}
+      />
+
+      {/* Toast Notifications */}
+      <ToastContainer
+        toasts={toasts}
+        onDismiss={removeNotification}
       />
     </main>
   );
