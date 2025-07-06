@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { VideoMetadata } from '@/types/video';
 import { PostFXModal } from './PostFXModal';
+import { ThumbnailCard } from './ThumbnailCard';
 
 interface GalleryModalProps {
   isOpen: boolean;
@@ -72,7 +73,9 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
 
   const downloadVideo = (video: VideoMetadata) => {
     const link = document.createElement('a');
-    link.href = video.file_path;
+    // Extract filename from API path and create direct download link
+    const filename = video.file_path.split('/').pop() || '';
+    link.href = `/videos/${filename}`;
     link.download = `${video.title}.mp4`;
     link.click();
   };
@@ -135,28 +138,12 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {videos.map((video) => (
-                  <div
+                  <ThumbnailCard
                     key={video.id}
-                    className={`border rounded-lg overflow-hidden cursor-pointer transition-all ${
-                      selectedVideo?.id === video.id ? 'ring-2 ring-blue-500' : 'hover:shadow-lg'
-                    }`}
+                    video={video}
+                    isSelected={selectedVideo?.id === video.id}
                     onClick={() => setSelectedVideo(video)}
-                  >
-                    <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                      <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.586a1 1 0 01.707.293l.914.914M15 5v5M9 9v10a1 1 0 001 1h4a1 1 0 001-1V9" />
-                      </svg>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="font-medium text-sm text-gray-800 truncate">{video.title}</h3>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {video.generation_params.resolution} • {video.generation_params.duration}s
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(video.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
+                  />
                 ))}
               </div>
             )}
@@ -185,19 +172,19 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Resolution:</span>
-                      <span className="font-medium">{selectedVideo.generation_params.resolution}</span>
+                      <span className="font-medium text-gray-800">{selectedVideo.generation_params.resolution}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Duration:</span>
-                      <span className="font-medium">{selectedVideo.generation_params.duration}s</span>
+                      <span className="font-medium text-gray-800">{selectedVideo.generation_params.duration}s</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Camera Fixed:</span>
-                      <span className="font-medium">{selectedVideo.generation_params.camera_fixed ? 'Yes' : 'No'}</span>
+                      <span className="font-medium text-gray-800">{selectedVideo.generation_params.camera_fixed ? 'Yes' : 'No'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Created:</span>
-                      <span className="font-medium">{new Date(selectedVideo.created_at).toLocaleDateString()}</span>
+                      <span className="font-medium text-gray-800">{new Date(selectedVideo.created_at).toLocaleDateString()}</span>
                     </div>
                     {selectedVideo.effects_applied && selectedVideo.effects_applied.length > 0 && (
                       <div className="flex justify-between">

@@ -4,6 +4,7 @@ import cv2
 import sys
 import json
 import os
+import subprocess
 from math import sin, cos, tan, log, exp, sqrt, pi
 
 class CathodeRayVideoProcessor:
@@ -100,6 +101,55 @@ class CathodeRayVideoProcessor:
         noise = np.random.normal(0, amount * variation * 255, image.shape)
         return np.clip(image.astype(np.float32) + noise, 0, 255).astype(np.uint8)
 
+    def validate_video(self, video_path):
+        """Validate that the video file is properly formatted and readable"""
+        try:
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                return False
+            
+            # Try to read a few frames
+            for _ in range(min(10, int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))):
+                ret, frame = cap.read()
+                if not ret or frame is None:
+                    cap.release()
+                    return False
+            
+            cap.release()
+            return True
+        except Exception:
+            return False
+
+    def optimize_with_ffmpeg(self, input_path, output_path):
+        """Use FFmpeg to create a web-optimized MP4 file"""
+        try:
+            # FFmpeg command for web-optimized MP4
+            cmd = [
+                'ffmpeg', '-y',  # -y to overwrite output file
+                '-i', input_path,
+                '-c:v', 'libx264',  # H.264 video codec
+                '-preset', 'medium',  # Encoding speed vs compression
+                '-crf', '23',  # Constant Rate Factor (lower = better quality)
+                '-pix_fmt', 'yuv420p',  # Pixel format for browser compatibility
+                '-movflags', '+faststart',  # Move metadata to front for streaming
+                '-max_muxing_queue_size', '1024',  # Handle frame timing issues
+                output_path
+            ]
+            
+            # Run FFmpeg with progress reporting
+            process = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if process.returncode != 0:
+                raise Exception(f"FFmpeg failed: {process.stderr}")
+            
+            return True
+        except FileNotFoundError:
+            print("WARNING: FFmpeg not found, using OpenCV output without optimization", flush=True)
+            return False
+        except Exception as e:
+            print(f"WARNING: FFmpeg optimization failed: {e}", flush=True)
+            return False
+
     def process_video(self, input_path, output_path, params=None):
         if params is None:
             params = self.default_params.copy()
@@ -115,9 +165,38 @@ class CathodeRayVideoProcessor:
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
-        # Create output video writer
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        print(f"Processing video: {width}x{height}, {fps}fps, {total_frames} frames", flush=True)
+        
+        # Create temporary output path for OpenCV
+        temp_output = output_path.replace('.mp4', '_temp.mp4')
+        
+        # Try different codecs for better compatibility
+        codecs_to_try = [
+            ('H264', cv2.VideoWriter_fourcc(*'H264')),
+            ('MJPG', cv2.VideoWriter_fourcc(*'MJPG')),
+            ('XVID', cv2.VideoWriter_fourcc(*'XVID')),
+            ('mp4v', cv2.VideoWriter_fourcc(*'mp4v'))
+        ]
+        
+        out = None
+        successful_codec = None
+        
+        for codec_name, fourcc in codecs_to_try:
+            try:
+                out = cv2.VideoWriter(temp_output, fourcc, fps, (width, height))
+                if out.isOpened():
+                    successful_codec = codec_name
+                    print(f"Using codec: {codec_name}", flush=True)
+                    break
+                else:
+                    out.release()
+            except Exception:
+                if out:
+                    out.release()
+                continue
+        
+        if not out or not out.isOpened():
+            raise Exception("Failed to initialize video writer with any codec")
         
         frame_count = 0
         
@@ -175,15 +254,39 @@ class CathodeRayVideoProcessor:
                 # Write frame
                 out.write(processed_frame)
                 
-                # Report progress
+                # Report progress (up to 80% for processing)
                 frame_count += 1
-                progress = int((frame_count / total_frames) * 100)
+                progress = int((frame_count / total_frames) * 80)
                 print(f"PROGRESS:{progress}", flush=True)
                 
         finally:
             cap.release()
             out.release()
         
+        print("PROGRESS:85", flush=True)
+        print("Post-processing video...", flush=True)
+        
+        # Try to optimize with FFmpeg
+        if self.optimize_with_ffmpeg(temp_output, output_path):
+            # Remove temporary file
+            try:
+                os.remove(temp_output)
+            except:
+                pass
+            print("PROGRESS:95", flush=True)
+        else:
+            # Fall back to renaming the temp file
+            try:
+                os.rename(temp_output, output_path)
+            except Exception as e:
+                raise Exception(f"Failed to finalize output file: {e}")
+            print("PROGRESS:95", flush=True)
+        
+        # Validate the final output
+        if not self.validate_video(output_path):
+            raise Exception("Generated video failed validation - file may be corrupted")
+        
+        print("PROGRESS:100", flush=True)
         print("COMPLETED", flush=True)
 
 

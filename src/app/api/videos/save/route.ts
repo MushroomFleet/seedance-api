@@ -7,7 +7,12 @@ const fileManager = new LocalVideoFileManager();
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { videoUrl, metadata }: { videoUrl: string; metadata: VideoMetadata } = body;
+    const { videoUrl, metadata, videoId, logReference }: { 
+      videoUrl: string; 
+      metadata: VideoMetadata; 
+      videoId?: string;
+      logReference?: string;
+    } = body;
 
     // Validate request
     if (!videoUrl || !metadata) {
@@ -19,14 +24,25 @@ export async function POST(request: NextRequest) {
 
     console.log('Saving video to local storage:', metadata.title);
 
+    // Update metadata with log reference if provided
+    const updatedMetadata = {
+      ...metadata,
+      // Store reference to API response log file
+      apiResponseLog: logReference || null,
+      // Use provided videoId or fallback to metadata.id
+      id: videoId || metadata.id
+    };
+
     // Save video to local storage
-    const filePath = await fileManager.saveVideo(videoUrl, metadata);
+    const filePath = await fileManager.saveVideo(videoUrl, updatedMetadata);
 
     console.log('Video saved successfully:', filePath);
 
     return NextResponse.json({ 
       success: true, 
       filePath,
+      videoId: updatedMetadata.id,
+      logReference,
       message: 'Video saved successfully'
     });
   } catch (error: any) {

@@ -32,6 +32,7 @@ export interface VideoMetadata {
   thumbnail_url: string;
   status: 'processing' | 'completed' | 'failed';
   effects_applied?: string[];
+  apiResponseLog?: string | null; // Reference to the API response log file
 }
 
 export interface PostFXJob {

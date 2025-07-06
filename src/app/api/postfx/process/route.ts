@@ -106,11 +106,12 @@ async function processVideoAsync(
 
     // Generate output filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const baseName = path.basename(sourceVideo.file_path, '.mp4');
+    const sourceFilename = sourceVideo.file_path.split('/').pop() || '';
+    const baseName = path.basename(sourceFilename, '.mp4');
     const outputFilename = `${baseName}_cathode-ray_${timestamp}.mp4`;
     
     // File paths
-    const inputPath = path.join(process.cwd(), 'public', sourceVideo.file_path);
+    const inputPath = path.join(process.cwd(), 'public', 'videos', sourceFilename);
     const outputPath = path.join(process.cwd(), 'public', 'videos', outputFilename);
     const scriptPath = path.join(process.cwd(), 'scripts', 'cathode_ray_processor.py');
 
@@ -156,7 +157,7 @@ async function processVideoAsync(
             id: newVideoId,
             title: `${sourceVideo.title} (Cathode Ray)`,
             description: `${sourceVideo.description} - Processed with cathode ray effect`,
-            file_path: `/videos/${outputFilename}`,
+            file_path: `/api/videos/stream/${outputFilename}`,
             effects_applied: effectsApplied,
             created_at: new Date().toISOString()
           };

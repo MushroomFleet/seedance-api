@@ -5,12 +5,16 @@ import fs from 'fs/promises';
 export class LocalVideoFileManager {
   private outputDir = path.join(process.cwd(), 'public');
   private videosDir = path.join(this.outputDir, 'videos');
+  private logsDir = path.join(this.outputDir, 'logs');
+  private apiResponsesDir = path.join(this.logsDir, 'api-responses');
   private metadataFile = path.join(this.outputDir, 'metadata.json');
 
   async ensureDirectories(): Promise<void> {
     try {
       await fs.mkdir(this.outputDir, { recursive: true });
       await fs.mkdir(this.videosDir, { recursive: true });
+      await fs.mkdir(this.logsDir, { recursive: true });
+      await fs.mkdir(this.apiResponsesDir, { recursive: true });
     } catch (error) {
       console.error('Failed to create directories:', error);
     }
@@ -36,10 +40,10 @@ export class LocalVideoFileManager {
       // Save video file
       await fs.writeFile(filePath, buffer);
 
-      // Update metadata with public URL path
+      // Update metadata with streaming API path
       const updatedMetadata = {
         ...metadata,
-        file_path: `/videos/${filename}`,
+        file_path: `/api/videos/stream/${filename}`,
       };
 
       // Save metadata
@@ -106,13 +110,17 @@ export class LocalVideoFileManager {
         throw new Error('Video not found');
       }
 
-      // Delete video file - convert public URL path to file system path
-      const videoPath = path.join(process.cwd(), 'public', videoMetadata.file_path);
+      // Delete video file - extract filename from API path and convert to file system path
+      const filename = videoMetadata.file_path.split('/').pop() || '';
+      const videoPath = path.join(this.videosDir, filename);
       try {
         await fs.unlink(videoPath);
       } catch (error) {
         console.warn('Video file not found for deletion:', videoPath);
       }
+
+      // Delete associated API response log
+      await this.deleteApiResponseLog(videoId);
 
       // Remove from metadata
       const updatedMetadata = metadata.filter(m => m.id !== videoId);
@@ -123,6 +131,73 @@ export class LocalVideoFileManager {
     }
   }
 
+  async saveApiResponseLog(videoId: string, apiResponse: any): Promise<string> {
+    await this.ensureDirectories();
+
+    try {
+      const logFilename = this.generateLogFilename(videoId);
+      const logFilePath = path.join(this.apiResponsesDir, logFilename);
+
+      // Save complete API response with metadata
+      const logData = {
+        videoId,
+        timestamp: new Date().toISOString(),
+        apiResponse
+      };
+
+      await fs.writeFile(logFilePath, JSON.stringify(logData, null, 2));
+      console.log('API response logged:', logFilename);
+
+      return logFilename;
+    } catch (error: any) {
+      console.error('Failed to save API response log:', error);
+      throw new Error(`Failed to save API response log: ${error.message}`);
+    }
+  }
+
+  async loadApiResponseLog(videoId: string): Promise<any> {
+    try {
+      // Find log file by pattern since we don't store exact filename
+      const files = await fs.readdir(this.apiResponsesDir);
+      const logFile = files.find(file => file.startsWith(`${videoId}_`) && file.endsWith('_api-response.json'));
+      
+      if (!logFile) {
+        console.warn(`API response log not found for video ID: ${videoId}`);
+        return null;
+      }
+
+      const logFilePath = path.join(this.apiResponsesDir, logFile);
+      const data = await fs.readFile(logFilePath, 'utf-8');
+      const logData = JSON.parse(data);
+      
+      return logData.apiResponse;
+    } catch (error) {
+      console.warn(`Failed to load API response log for video ID: ${videoId}`, error);
+      return null;
+    }
+  }
+
+  private generateLogFilename(videoId: string): string {
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    return `${videoId}_${timestamp}_api-response.json`;
+  }
+
+  async deleteApiResponseLog(videoId: string): Promise<void> {
+    try {
+      // Find and delete log file by pattern since we don't store exact filename
+      const files = await fs.readdir(this.apiResponsesDir);
+      const logFile = files.find(file => file.startsWith(`${videoId}_`) && file.endsWith('_api-response.json'));
+      
+      if (logFile) {
+        const logFilePath = path.join(this.apiResponsesDir, logFile);
+        await fs.unlink(logFilePath);
+        console.log('API response log deleted:', logFile);
+      }
+    } catch (error) {
+      console.warn('Failed to delete API response log:', error);
+    }
+  }
+
   async getVideoStats(): Promise<{ totalVideos: number; totalSize: number }> {
     try {
       const metadata = await this.loadMetadata();
@@ -130,8 +205,10 @@ export class LocalVideoFileManager {
 
       for (const video of metadata) {
         try {
-          // Convert public URL path to file system path
-          const stats = await fs.stat(path.join(process.cwd(), 'public', video.file_path));
+          // Extract filename from API path and get file stats
+          const filename = video.file_path.split('/').pop() || '';
+          const videoPath = path.join(this.videosDir, filename);
+          const stats = await fs.stat(videoPath);
           totalSize += stats.size;
         } catch (error) {
           // File might not exist

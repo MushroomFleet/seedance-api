@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const queuedRequest = queueManager.getRequest(id);
     
     if (!queuedRequest) {
@@ -33,7 +33,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const removed = queueManager.removeFromQueue(id);
     
     if (!removed) {

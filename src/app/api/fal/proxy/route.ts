@@ -1,10 +1,14 @@
 import { fal } from "@fal-ai/client";
 import { NextRequest, NextResponse } from "next/server";
+import { LocalVideoFileManager } from '@/lib/file-manager';
+import { randomUUID } from 'crypto';
 
 // Configure FAL with server-side API key
 fal.config({
   credentials: process.env.FAL_KEY,
 });
+
+const fileManager = new LocalVideoFileManager();
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +31,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Generate unique video ID for this request
+    const videoId = randomUUID();
+
     console.log('Generating video with parameters:', {
+      videoId,
       model,
       prompt: input.prompt.slice(0, 50) + '...',
       duration: input.duration,
@@ -45,7 +53,32 @@ export async function POST(request: NextRequest) {
 
     console.log('Video generation completed:', result.data.video.file_name);
 
-    return NextResponse.json(result);
+    // Save complete API response to log file (includes base64 data)
+    await fileManager.saveApiResponseLog(videoId, result);
+
+    // Return clean response without heavy base64 data
+    const cleanResult = {
+      ...result,
+      data: {
+        ...result.data,
+        video: {
+          ...result.data.video,
+          // Keep essential video info but remove base64 content if present
+          url: result.data.video.url,
+          content_type: result.data.video.content_type,
+          file_name: result.data.video.file_name,
+          file_size: result.data.video.file_size,
+          duration: result.data.video.duration,
+          fps: result.data.video.fps,
+          resolution: result.data.video.resolution,
+        }
+      },
+      // Add reference to log file
+      videoId,
+      logReference: `${videoId}_api-response.json`
+    };
+
+    return NextResponse.json(cleanResult);
   } catch (error: any) {
     console.error('FAL API Error:', error);
     
