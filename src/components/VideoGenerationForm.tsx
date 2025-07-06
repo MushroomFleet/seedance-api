@@ -14,7 +14,7 @@ export const VideoGenerationForm: React.FC<VideoGenerationFormProps> = ({
   isGenerating,
   progress
 }) => {
-  const [parameters, setParameters] = useState<VideoGenerationRequest>({
+  const [parameters, setParameters] = useState<Omit<VideoGenerationRequest, 'image_url'>>({
     prompt: '',
     duration: "5",
     resolution: "720p",

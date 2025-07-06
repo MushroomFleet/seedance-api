@@ -1,12 +1,10 @@
 export interface VideoGenerationRequest {
   prompt: string;
-  image_url?: string;
-  duration: 5 | 10;
+  image_url: string; // Required for Seedance
+  duration: "5" | "10";
   resolution: '480p' | '720p';
-  aspect_ratio: '16:9' | '9:16' | '1:1';
-  motion_intensity: number; // 0.0 to 1.0
-  seed?: number;
-  prompt_optimizer: boolean;
+  camera_fixed: boolean;
+  seed?: number; // Optional seed parameter
 }
 
 export interface VideoGenerationResult {
@@ -16,7 +14,7 @@ export interface VideoGenerationResult {
     file_name: string;
     file_size: number;
     duration: number;
-    fps: 24;
+    fps: number;
     resolution: { width: number; height: number };
   };
   seed: number;

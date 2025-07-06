@@ -19,7 +19,7 @@ export class FALVideoGenerator {
     
     while (attempt < this.maxRetries) {
       try {
-        const result = await fal.subscribe("fal-ai/seedance/v1/lite/image-to-video", {
+        const result = await fal.subscribe("fal-ai/bytedance/seedance/v1/lite/image-to-video", {
           input,
           logs: true,
           onQueueUpdate: (update: QueueUpdate) => {
@@ -27,19 +27,33 @@ export class FALVideoGenerator {
           },
         });
 
+        // Build our own video structure since API returns simple format
+        const videoData = {
+          url: result.data.video.url,
+          content_type: 'video/mp4' as const,
+          file_name: `video_${Date.now()}.mp4`,
+          file_size: 0, // Will be filled when file is downloaded
+          duration: parseInt(input.duration),
+          fps: 24,
+          resolution: { width: input.resolution === '720p' ? 1280 : 854, height: input.resolution === '720p' ? 720 : 480 }
+        };
+
+        const metadata: VideoMetadata = {
+          id: crypto.randomUUID(),
+          title: input.prompt.slice(0, 50) + (input.prompt.length > 50 ? "..." : ""),
+          description: input.prompt,
+          tags: this.extractTags(input.prompt),
+          created_at: new Date().toISOString(),
+          generation_params: input,
+          file_path: result.data.video.url,
+          thumbnail_url: await this.generateThumbnailUrl(result.data.video.url),
+          status: 'completed' as const
+        };
+
         return {
-          ...result.data,
-          metadata: {
-            id: crypto.randomUUID(),
-            title: input.prompt.slice(0, 50) + (input.prompt.length > 50 ? "..." : ""),
-            description: input.prompt,
-            tags: this.extractTags(input.prompt),
-            created_at: new Date().toISOString(),
-            generation_params: input,
-            file_path: result.data.video.url,
-            thumbnail_url: await this.generateThumbnailUrl(result.data.video.url),
-            status: 'completed'
-          }
+          video: videoData,
+          seed: result.data.seed || 0,
+          metadata
         };
       } catch (error: any) {
         attempt++;

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Configure FAL with server-side API key
 fal.config({
-  credentials: process.env.FAL_KEY_SECRET,
+  credentials: process.env.FAL_KEY,
 });
 
 export async function POST(request: NextRequest) {

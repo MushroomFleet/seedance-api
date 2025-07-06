@@ -3,63 +3,38 @@
 import React, { useState } from 'react';
 import { VideoGenerationForm } from '@/components/VideoGenerationForm';
 import { GalleryModal } from '@/components/GalleryModal';
-import { FALVideoGenerator } from '@/lib/fal-client';
+import { QueueDisplay } from '@/components/QueueDisplay';
+import { useQueueStore } from '@/lib/queue-store';
 import { VideoGenerationRequest } from '@/types/video';
 
 export default function Home() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const generator = new FALVideoGenerator();
+  const { addToQueue, isLoading } = useQueueStore();
 
   const handleGenerate = async (request: VideoGenerationRequest) => {
-    setIsGenerating(true);
-    setProgress(0);
     setError(null);
     setSuccess(null);
 
     try {
-      console.log('Starting video generation...');
-
-      // Generate video
-      const result = await generator.generateVideo(request, {
-        onProgress: (progressValue) => {
-          setProgress(progressValue);
-        }
-      });
-
-      console.log('Video generated successfully:', result.metadata.title);
-      setProgress(100);
-
-      // Save video to local storage
-      const saveResponse = await fetch('/api/videos/save', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          videoUrl: result.video.url,
-          metadata: result.metadata
-        })
-      });
-
-      if (saveResponse.ok) {
-        setSuccess('Video generated and saved successfully!');
-        console.log('Video saved to local storage');
-      } else {
-        const saveError = await saveResponse.json();
-        throw new Error(`Failed to save video: ${saveError.error}`);
-      }
+      console.log('Adding request to queue...');
+      
+      const requestId = await addToQueue(request);
+      
+      setSuccess(`Request added to queue successfully! ID: ${requestId.slice(0, 8)}...`);
+      console.log('Request added to queue:', requestId);
+      
+      // Show queue automatically when a request is added
+      setShowQueue(true);
+      
     } catch (error: any) {
-      console.error('Generation failed:', error);
-      setError(error.message || 'Failed to generate video');
+      console.error('Failed to add to queue:', error);
+      setError(error.message || 'Failed to add request to queue');
     } finally {
-      setIsGenerating(false);
       setTimeout(() => {
-        setProgress(0);
         setSuccess(null);
         setError(null);
       }, 5000);
@@ -117,6 +92,15 @@ export default function Home() {
             </svg>
             <span>View Gallery</span>
           </button>
+          <button
+            onClick={() => setShowQueue(!showQueue)}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>{showQueue ? 'Hide Queue' : 'Show Queue'}</span>
+          </button>
         </div>
 
         {/* Status Messages */}
@@ -145,9 +129,16 @@ export default function Home() {
         {/* Video Generation Form */}
         <VideoGenerationForm
           onGenerate={handleGenerate}
-          isGenerating={isGenerating}
-          progress={progress}
+          isGenerating={isLoading}
+          progress={0}
         />
+
+        {/* Queue Display */}
+        {showQueue && (
+          <div className="mt-12">
+            <QueueDisplay />
+          </div>
+        )}
 
         {/* Info Section */}
         <div className="mt-12 max-w-4xl mx-auto">
