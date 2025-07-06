@@ -36,7 +36,7 @@ A local MVP application for generating high-quality videos from images and text 
 
 3. Set up environment variables:
    ```bash
-   cp .env.example .env.local
+   cp env.example .env.local
    ```
 
 4. Add your FAL.ai API key to `.env.local`:
