@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 
 export class LocalVideoFileManager {
-  private outputDir = path.join(process.cwd(), 'output');
+  private outputDir = path.join(process.cwd(), 'public');
   private videosDir = path.join(this.outputDir, 'videos');
   private metadataFile = path.join(this.outputDir, 'metadata.json');
 
@@ -36,10 +36,10 @@ export class LocalVideoFileManager {
       // Save video file
       await fs.writeFile(filePath, buffer);
 
-      // Update metadata with local path
+      // Update metadata with public URL path
       const updatedMetadata = {
         ...metadata,
-        file_path: `./output/videos/${filename}`,
+        file_path: `/videos/${filename}`,
       };
 
       // Save metadata
@@ -106,8 +106,8 @@ export class LocalVideoFileManager {
         throw new Error('Video not found');
       }
 
-      // Delete video file
-      const videoPath = path.join(process.cwd(), videoMetadata.file_path);
+      // Delete video file - convert public URL path to file system path
+      const videoPath = path.join(process.cwd(), 'public', videoMetadata.file_path);
       try {
         await fs.unlink(videoPath);
       } catch (error) {
@@ -130,7 +130,8 @@ export class LocalVideoFileManager {
 
       for (const video of metadata) {
         try {
-          const stats = await fs.stat(path.join(process.cwd(), video.file_path));
+          // Convert public URL path to file system path
+          const stats = await fs.stat(path.join(process.cwd(), 'public', video.file_path));
           totalSize += stats.size;
         } catch (error) {
           // File might not exist
