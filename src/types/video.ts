@@ -38,7 +38,7 @@ export interface VideoMetadata {
 export interface PostFXJob {
   id: string;
   sourceVideoId: string;
-  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1';
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress?: number;
   outputVideoId?: string;
@@ -90,6 +90,17 @@ export interface UpscaleParams {
   field_strength: number;
   temporal_radius: number;
   edge_enhancement: number;
+}
+
+export interface GSLv1Params {
+  effect_preset: 'custom' | 'grayscale' | 'edge_detection' | 'gaussian_blur' | 'pixelate' | 'wave_distortion' | 'chromatic_aberration';
+  intensity: number;
+  blur_radius: number;
+  edge_threshold: number;
+  pixelate_factor: number;
+  wave_amplitude: number;
+  wave_frequency: number;
+  chromatic_shift: number;
 }
 
 export interface GenerationOptions {

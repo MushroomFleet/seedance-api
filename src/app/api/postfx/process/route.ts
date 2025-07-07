@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { LocalVideoFileManager } from '@/lib/file-manager';
-import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params, UpscaleParams } from '@/types/video';
+import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params, UpscaleParams, GSLv1Params } from '@/types/video';
 
 const fileManager = new LocalVideoFileManager();
 
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { sourceVideoId, effect, parameters }: { 
       sourceVideoId: string; 
-      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale'; 
-      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams>
+      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1'; 
+      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params>
     } = body;
 
     // Validate request
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['cathode-ray', 'halation-bloom', 'vhs-v1', 'upscale'].includes(effect)) {
+    if (!['cathode-ray', 'halation-bloom', 'vhs-v1', 'upscale', 'gsl-v1'].includes(effect)) {
       return NextResponse.json(
-        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1, upscale' },
+        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1, upscale, gsl-v1' },
         { status: 400 }
       );
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 async function processVideoAsync(
   job: PostFXJob, 
   sourceVideo: VideoMetadata, 
-  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams>
+  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params>
 ) {
   try {
     // Update job status
@@ -139,6 +139,21 @@ async function processVideoAsync(
       effectParams = { ...defaultParams, ...parameters };
       scriptName = 'vhs_v1_processor.py';
       effectDisplayName = 'VHS v1';
+    } else if (job.effect === 'gsl-v1') {
+      // Default parameters for GSL Filter v1 effect
+      const defaultParams: GSLv1Params = {
+        effect_preset: 'custom',
+        intensity: 1.0,
+        blur_radius: 2.0,
+        edge_threshold: 0.1,
+        pixelate_factor: 4,
+        wave_amplitude: 0.1,
+        wave_frequency: 5.0,
+        chromatic_shift: 0.01
+      };
+      effectParams = { ...defaultParams, ...parameters };
+      scriptName = 'gsl_v1_processor.py';
+      effectDisplayName = 'GSL Filter v1';
     } else if (job.effect === 'upscale') {
       // Default parameters for upscale effect
       const defaultParams: UpscaleParams = {

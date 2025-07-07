@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { VHSv1Params, HalationBloomParams, CathodeRayParams } from '@/types/video';
+import { VHSv1Params, HalationBloomParams, CathodeRayParams, GSLv1Params } from '@/types/video';
 
 interface EffectsConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1';
   onSaveConfig: (config: any) => void;
   initialConfig?: any;
 }
@@ -200,6 +200,108 @@ const VHS_PRESETS = {
   }
 };
 
+// GSL Filter v1 presets based on documentation
+const GSL_PRESETS = {
+  default: {
+    name: "Default",
+    description: "Standard GSL filter settings (no effect)",
+    config: {
+      effect_preset: 'custom' as const,
+      intensity: 1.0,
+      blur_radius: 2.0,
+      edge_threshold: 0.1,
+      pixelate_factor: 4,
+      wave_amplitude: 0.1,
+      wave_frequency: 5.0,
+      chromatic_shift: 0.01
+    }
+  },
+  grayscale: {
+    name: "Grayscale",
+    description: "Convert to grayscale using luminance weights",
+    config: {
+      effect_preset: 'grayscale' as const,
+      intensity: 1.0,
+      blur_radius: 0.1,
+      edge_threshold: 0.1,
+      pixelate_factor: 1,
+      wave_amplitude: 0.0,
+      wave_frequency: 1.0,
+      chromatic_shift: 0.0
+    }
+  },
+  edgeDetection: {
+    name: "Edge Detection",
+    description: "Highlight edges and details in the image",
+    config: {
+      effect_preset: 'edge_detection' as const,
+      intensity: 1.5,
+      blur_radius: 0.1,
+      edge_threshold: 0.2,
+      pixelate_factor: 1,
+      wave_amplitude: 0.0,
+      wave_frequency: 1.0,
+      chromatic_shift: 0.0
+    }
+  },
+  gaussianBlur: {
+    name: "Gaussian Blur",
+    description: "Smooth blur effect for dreamy visuals",
+    config: {
+      effect_preset: 'gaussian_blur' as const,
+      intensity: 1.0,
+      blur_radius: 5.0,
+      edge_threshold: 0.1,
+      pixelate_factor: 1,
+      wave_amplitude: 0.0,
+      wave_frequency: 1.0,
+      chromatic_shift: 0.0
+    }
+  },
+  pixelate: {
+    name: "Pixelate",
+    description: "Retro blocky pixelated effect",
+    config: {
+      effect_preset: 'pixelate' as const,
+      intensity: 1.0,
+      blur_radius: 0.1,
+      edge_threshold: 0.1,
+      pixelate_factor: 8,
+      wave_amplitude: 0.0,
+      wave_frequency: 1.0,
+      chromatic_shift: 0.0
+    }
+  },
+  waveDistortion: {
+    name: "Wave Distortion",
+    description: "Liquid-like wavy distortion effect",
+    config: {
+      effect_preset: 'wave_distortion' as const,
+      intensity: 1.0,
+      blur_radius: 0.1,
+      edge_threshold: 0.1,
+      pixelate_factor: 1,
+      wave_amplitude: 0.3,
+      wave_frequency: 10.0,
+      chromatic_shift: 0.0
+    }
+  },
+  chromaticAberration: {
+    name: "Chromatic Aberration",
+    description: "Lens color fringing and prismatic effects",
+    config: {
+      effect_preset: 'chromatic_aberration' as const,
+      intensity: 1.0,
+      blur_radius: 0.1,
+      edge_threshold: 0.1,
+      pixelate_factor: 1,
+      wave_amplitude: 0.0,
+      wave_frequency: 1.0,
+      chromatic_shift: 0.05
+    }
+  }
+};
+
 export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
   isOpen,
   onClose,
@@ -207,9 +309,10 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
   onSaveConfig,
   initialConfig
 }) => {
-  const [config, setConfig] = useState<VHSv1Params | HalationBloomParams | CathodeRayParams>(
+  const [config, setConfig] = useState<VHSv1Params | HalationBloomParams | CathodeRayParams | GSLv1Params>(
     effect === 'vhs-v1' ? VHS_PRESETS.default.config : 
     effect === 'halation-bloom' ? HALATION_BLOOM_PRESETS.default.config :
+    effect === 'gsl-v1' ? GSL_PRESETS.default.config :
     CATHODE_RAY_PRESETS.static.config
   );
   const [selectedPreset, setSelectedPreset] = useState<string>(effect === 'cathode-ray' ? 'static' : 'default');
@@ -234,6 +337,8 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
         ? VHS_PRESETS.default.config 
         : effect === 'halation-bloom' 
         ? HALATION_BLOOM_PRESETS.default.config
+        : effect === 'gsl-v1'
+        ? GSL_PRESETS.default.config
         : CATHODE_RAY_PRESETS.static.config;
       setConfig(defaultConfig);
       setSelectedPreset(effect === 'cathode-ray' ? 'static' : 'default');
@@ -251,6 +356,12 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
       }
     } else if (effect === 'halation-bloom') {
       const preset = HALATION_BLOOM_PRESETS[presetKey as keyof typeof HALATION_BLOOM_PRESETS];
+      if (preset) {
+        setConfig(preset.config);
+        setSelectedPreset(presetKey);
+      }
+    } else if (effect === 'gsl-v1') {
+      const preset = GSL_PRESETS[presetKey as keyof typeof GSL_PRESETS];
       if (preset) {
         setConfig(preset.config);
         setSelectedPreset(presetKey);
@@ -286,6 +397,8 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
       ? VHS_PRESETS.default.config 
       : effect === 'halation-bloom'
       ? HALATION_BLOOM_PRESETS.default.config
+      : effect === 'gsl-v1'
+      ? GSL_PRESETS.default.config
       : CATHODE_RAY_PRESETS.static.config;
     setConfig(defaultConfig);
     setSelectedPreset(effect === 'cathode-ray' ? 'static' : 'default');
@@ -297,11 +410,14 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
   const isVHS = effect === 'vhs-v1';
   const isHalationBloom = effect === 'halation-bloom';
   const isCathodeRay = effect === 'cathode-ray';
-  const presets = isVHS ? VHS_PRESETS : isHalationBloom ? HALATION_BLOOM_PRESETS : CATHODE_RAY_PRESETS;
+  const isGSLv1 = effect === 'gsl-v1';
+  const presets = isVHS ? VHS_PRESETS : isHalationBloom ? HALATION_BLOOM_PRESETS : isGSLv1 ? GSL_PRESETS : CATHODE_RAY_PRESETS;
   const themeColors = isVHS 
     ? { gradient: 'from-green-50 to-emerald-50', primary: 'green', slider: 'slider-green' }
     : isHalationBloom 
     ? { gradient: 'from-orange-50 to-pink-50', primary: 'orange', slider: 'slider-orange' }
+    : isGSLv1
+    ? { gradient: 'from-teal-50 to-cyan-50', primary: 'teal', slider: 'slider-teal' }
     : { gradient: 'from-purple-50 to-blue-50', primary: 'purple', slider: 'slider-purple' };
 
   return (
@@ -313,6 +429,7 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
             <h2 className="text-2xl font-bold text-gray-800">
               {isVHS ? 'VHS v1 Effect Configuration' : 
                isHalationBloom ? 'Halation & Bloom Effect Configuration' : 
+               isGSLv1 ? 'GSL Filter v1 Configuration' :
                'Cathode Ray Effect Configuration'}
             </h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -320,6 +437,8 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
                 ? 'Customize parameters for authentic VHS tape effects'
                 : isHalationBloom
                 ? 'Customize parameters for cinematic lighting effects'
+                : isGSLv1
+                ? 'Customize parameters for advanced shader-based effects'
                 : 'Customize parameters for retro CRT monitor effects'
               }
             </p>
@@ -689,6 +808,171 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
                 </div>
               </div>
             </div>
+          ) : isGSLv1 ? (
+            // GSL Filter v1 Parameters - Basic Integration
+            <div className="space-y-8">
+              {/* Effect Type */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-teal-500 rounded-full mr-2"></span>
+                  Effect Type
+                </h3>
+                <div className="max-w-md">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Preset: {(config as GSLv1Params).effect_preset}
+                  </label>
+                  <select
+                    value={(config as GSLv1Params).effect_preset}
+                    onChange={(e) => handleParameterChange('effect_preset', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-200 focus:border-teal-500 text-gray-700"
+                  >
+                    <option value="custom">Custom</option>
+                    <option value="grayscale">Grayscale</option>
+                    <option value="edge_detection">Edge Detection</option>
+                    <option value="gaussian_blur">Gaussian Blur</option>
+                    <option value="pixelate">Pixelate</option>
+                    <option value="wave_distortion">Wave Distortion</option>
+                    <option value="chromatic_aberration">Chromatic Aberration</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Choose effect type (basic integration uses default values)</p>
+                </div>
+              </div>
+
+              {/* Main Parameters */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-cyan-500 rounded-full mr-2"></span>
+                  Basic Parameters
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Intensity: {(config as GSLv1Params).intensity.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="5.0"
+                      step="0.1"
+                      value={(config as GSLv1Params).intensity}
+                      onChange={(e) => handleParameterChange('intensity', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-teal"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Overall effect strength</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Blur Radius: {(config as GSLv1Params).blur_radius.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="10.0"
+                      step="0.1"
+                      value={(config as GSLv1Params).blur_radius}
+                      onChange={(e) => handleParameterChange('blur_radius', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-teal"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Blur effect radius</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Advanced Parameters */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-teal-600 rounded-full mr-2"></span>
+                  Advanced Parameters
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Edge Threshold: {(config as GSLv1Params).edge_threshold.toFixed(2)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="1.0"
+                      step="0.01"
+                      value={(config as GSLv1Params).edge_threshold}
+                      onChange={(e) => handleParameterChange('edge_threshold', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-teal"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Edge detection sensitivity</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Pixelate Factor: {(config as GSLv1Params).pixelate_factor}
+                    </label>
+                    <input
+                      type="range"
+                      min="1"
+                      max="64"
+                      step="1"
+                      value={(config as GSLv1Params).pixelate_factor}
+                      onChange={(e) => handleParameterChange('pixelate_factor', parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-teal"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Pixelation block size</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chromatic Shift: {(config as GSLv1Params).chromatic_shift.toFixed(3)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="0.1"
+                      step="0.001"
+                      value={(config as GSLv1Params).chromatic_shift}
+                      onChange={(e) => handleParameterChange('chromatic_shift', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-teal"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Color channel separation</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Wave Distortion */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-cyan-600 rounded-full mr-2"></span>
+                  Wave Distortion
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Wave Amplitude: {(config as GSLv1Params).wave_amplitude.toFixed(2)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="1.0"
+                      step="0.01"
+                      value={(config as GSLv1Params).wave_amplitude}
+                      onChange={(e) => handleParameterChange('wave_amplitude', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-teal"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Wave distortion strength</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Wave Frequency: {(config as GSLv1Params).wave_frequency.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="50.0"
+                      step="0.1"
+                      value={(config as GSLv1Params).wave_frequency}
+                      onChange={(e) => handleParameterChange('wave_frequency', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-teal"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Wave pattern frequency</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           ) : (
             // Halation-Bloom Parameters
             <div className="space-y-8">
@@ -859,6 +1143,8 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
                     ? 'bg-green-500 hover:bg-green-600' 
                     : isHalationBloom
                     ? 'bg-orange-500 hover:bg-orange-600'
+                    : isGSLv1
+                    ? 'bg-teal-500 hover:bg-teal-600'
                     : 'bg-purple-500 hover:bg-purple-600'
                 }`}
               >

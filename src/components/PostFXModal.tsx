@@ -21,7 +21,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [selectedEffect, setSelectedEffect] = useState<'cathode-ray' | 'halation-bloom' | 'vhs-v1'>('cathode-ray');
+  const [selectedEffect, setSelectedEffect] = useState<'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1'>('cathode-ray');
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [effectParameters, setEffectParameters] = useState<any>(null);
 
@@ -138,7 +138,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold text-gray-800">Choose Effect</h3>
-              {(selectedEffect === 'vhs-v1' || selectedEffect === 'halation-bloom' || selectedEffect === 'cathode-ray') && !isProcessing && (
+              {(selectedEffect === 'vhs-v1' || selectedEffect === 'halation-bloom' || selectedEffect === 'cathode-ray' || selectedEffect === 'gsl-v1') && !isProcessing && (
                 <button
                   onClick={() => setShowConfigModal(true)}
                   className={`px-3 py-1 text-sm rounded-lg transition-colors flex items-center space-x-1 ${
@@ -146,6 +146,8 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                       ? 'bg-green-100 text-green-700 hover:bg-green-200'
                       : selectedEffect === 'halation-bloom'
                       ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
+                      : selectedEffect === 'gsl-v1'
+                      ? 'bg-teal-100 text-teal-700 hover:bg-teal-200'
                       : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                   }`}
                 >
@@ -249,6 +251,39 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                   </div>
                   {selectedEffect === 'vhs-v1' && (
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* GSL Filter v1 Effect */}
+              <div 
+                onClick={() => !isProcessing && setSelectedEffect('gsl-v1')}
+                className={`rounded-lg p-4 border cursor-pointer transition-all ${
+                  selectedEffect === 'gsl-v1' 
+                    ? 'bg-gradient-to-r from-teal-100 to-cyan-100 border-teal-300 ring-2 ring-teal-200' 
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                } ${isProcessing ? 'cursor-not-allowed opacity-60' : ''}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    selectedEffect === 'gsl-v1' ? 'bg-teal-500' : 'bg-gray-400'
+                  }`}>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800">GSL Filter v1</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Advanced shader-based effects including edge detection, pixelation, and wave distortions
+                    </p>
+                  </div>
+                  {selectedEffect === 'gsl-v1' && (
+                    <div className="w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>

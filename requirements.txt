@@ -1,0 +1,15 @@
+# Core video processing dependencies
+opencv-python>=4.8.0
+numpy>=1.24.0
+
+# Image processing
+Pillow>=10.0.0
+
+# GPU-accelerated processing for GSL Filter v1
+moderngl>=5.8.0
+
+# Math and scientific computing
+scipy>=1.10.0
+
+# Optional: Additional OpenGL utilities
+moderngl-window>=2.4.0
