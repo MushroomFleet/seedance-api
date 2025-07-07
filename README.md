@@ -23,10 +23,12 @@ A comprehensive video generation and post-processing platform that combines Byte
 - **Cathode Ray Effect**: Retro CRT monitor styling with screen curvature, scanlines, glow, and color bleeding
 - **Halation & Bloom Effect**: Cinematic lighting effects with luminous glows, color bleeding, and chromatic aberration  
 - **VHS v1 Effect**: Authentic VHS tape effects with tracking issues, noise, wave distortions, and analog artifacts
-- **Advanced Parameter Configuration**: Professional presets with custom parameter override controls
+- **Interlaced Upscaling**: Advanced video upscaling (1.5x-2.0x) with motion compensation, field processing, and edge enhancement
+- **Advanced Parameter Configuration**: Professional presets with custom parameter override controls for all effects
 - **Mathematical Expression Support**: Dynamic effects with custom timing expressions using frame variables
 - **Persistent Configurations**: LocalStorage-based configuration saving with per-effect customization
-- **Color-Themed UI**: Purple (Cathode Ray), Orange (Halation-Bloom), Green (VHS) themed interfaces
+- **Color-Themed UI**: Purple (Cathode Ray), Orange (Halation-Bloom), Green (VHS), Blue/Cyan (Upscaling) themed interfaces
+- **Dedicated Queue Systems**: Separate processing queues for effects and upscaling with background processing support
 
 ### Video Management
 - **Local Storage**: Videos automatically saved to `./public/videos/` directory
@@ -168,10 +170,11 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 
 1. **Open Gallery**: Click "View Gallery" to browse existing videos
 2. **Select Video**: Choose a video for post-processing
-3. **Choose Effect**: Select from three available effects:
+3. **Choose Effect**: Select from four available processing options:
    - **Cathode Ray**: Retro CRT monitor effects with screen curvature and scanlines
    - **Halation & Bloom**: Cinematic lighting effects with luminous glows
    - **VHS v1**: Authentic VHS tape artifacts with tracking issues and noise
+   - **Interlaced Upscaling**: Advanced video enhancement with 1.5x-2.0x scaling and motion compensation
 4. **Configure Parameters**: Click "Configure" button to customize effect settings:
    - **Professional Presets**: Choose from carefully crafted preset configurations
    - **Custom Parameters**: Override individual parameters with sliders and controls
@@ -180,6 +183,21 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 5. **Apply Effect**: Start processing with your configured parameters
 6. **Monitor Progress**: Watch real-time processing progress with color-coded indicators
 7. **View Result**: Processed video is saved with effect-specific suffix and timestamp
+
+### Using the Upscale Queue
+
+1. **Open Gallery**: Browse existing videos to select for upscaling
+2. **Click Upscale Queue**: Access the dedicated upscaling interface below the PostFX queue button
+3. **Choose Scale Factor**: Select between 1.5x (recommended) or 2.0x (maximum) upscaling
+4. **Advanced Configuration**: Click "Advanced Configure" for professional upscaling control:
+   - **Motion Compensation**: None, Basic, or Advanced temporal processing
+   - **Interpolation Mode**: Bilinear, Bicubic, or Nearest neighbor scaling
+   - **Field Processing**: Top-first or Bottom-first field order with customizable blend factors
+   - **Deinterlacing Method**: Blend, Bob, or Weave processing techniques
+   - **Edge Enhancement**: Adjustable sharpening for improved detail preservation
+5. **Apply Upscaling**: Start processing with real-time progress monitoring
+6. **Background Processing**: Jobs continue running in background - you can close the modal
+7. **Enhanced Output**: Upscaled videos saved with quality improvements and web optimization
 
 ### Managing Videos
 
@@ -209,6 +227,8 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 │   │   ├── GalleryModal.tsx           # Video gallery modal
 │   │   ├── QueueDisplay.tsx           # Real-time queue display
 │   │   ├── PostFXModal.tsx            # Post-processing interface
+│   │   ├── UpscaleModal.tsx           # Dedicated upscaling interface
+│   │   ├── UpscaleConfigModal.tsx     # Advanced upscaling configuration
 │   │   └── ToastNotification.tsx      # User notifications
 │   ├── lib/
 │   │   ├── fal-client.ts              # FAL.ai client with retry logic
@@ -222,7 +242,8 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 ├── scripts/
 │   ├── cathode_ray_processor.py       # CRT monitor effects with configurable parameters
 │   ├── halation_bloom_processor.py    # Cinematic lighting effects processor
-│   └── vhs_v1_processor.py            # Authentic VHS tape effects processor
+│   ├── vhs_v1_processor.py            # Authentic VHS tape effects processor
+│   └── upscale_processor.py           # Interlaced upscaling with motion compensation
 ├── docs/
 │   ├── SEEDANCE-DEVTEAM-HANDOFF.md    # Technical specification
 │   ├── postfx-output-format.md        # PostFX development standards
@@ -319,6 +340,24 @@ The platform includes a robust video processing pipeline with multiple reliabili
   - Authentic VHS: Realistic VHS tape characteristics
   - Extreme Degradation: Heavy distortion and multiple generation loss
   - Subtle Effects: Light VHS touch with minimal distortion
+
+#### Interlaced Upscaling Effect
+- **Scale Factor** (1.0-4.0): Upscaling multiplier with support for 1.5x and 2.0x recommended settings
+- **Input Dimensions**: Automatically detected from source video for optimal processing
+- **Field Order**: Top-first or Bottom-first field processing for authentic interlaced handling
+- **Motion Compensation**: None, Basic field blending, or Advanced temporal processing
+- **Interpolation Mode**: Bilinear (smooth), Bicubic (high quality), or Nearest (sharp/pixelated)
+- **Deinterlacing Method**: Blend (smooth combination), Bob (line doubling), or Weave (field interleaving)
+- **Blend Factor** (0.0-1.0): Controls field blending intensity for motion smoothing
+- **Field Strength** (0.0-2.0): Intensity of interlaced field separation effects
+- **Temporal Radius** (1-3): Frame range for advanced motion compensation processing
+- **Edge Enhancement** (0.0-1.0): Sobel-based edge sharpening for detail preservation
+- **Presets**:
+  - Quality Upscaling: Balanced settings for general enhancement (1.5x scale, basic motion compensation)
+  - Retro Video Effects: Emphasized interlacing with field separation for vintage look
+  - Artistic Effects: Creative field processing with enhanced visual artifacts
+  - Maximum Quality: 2.0x scaling with advanced motion compensation and edge enhancement
+  - Performance: Optimized settings for faster processing with good results
 
 ## Local Storage
 
@@ -475,6 +514,15 @@ This project is for personal/local use. Check FAL.ai terms for commercial usage.
   - **Color-Themed UI**: Purple, Orange, Green themed interfaces for each effect type
   - **Professional Presets**: 4-5 carefully crafted presets per effect with detailed parameter documentation
   - **Enhanced PostFX API**: Multi-effect processing support with parameter validation
+- **v0.7.0**: Advanced Interlaced Upscaling System (January 2025)
+  - **Dedicated Upscale Queue**: Separate upscaling interface with blue/cyan themed UI
+  - **1.5x-2.0x Video Enhancement**: Professional upscaling with motion compensation and field processing
+  - **Advanced Configuration Modal**: Comprehensive parameter control for motion compensation, interpolation, and deinterlacing
+  - **Five Professional Presets**: Quality Upscaling, Retro Video Effects, Artistic Effects, Maximum Quality, and Performance
+  - **Interlaced Field Processing**: Authentic field order handling with customizable blend factors and temporal processing
+  - **Edge Enhancement**: Sobel-based sharpening for detail preservation during upscaling
+  - **Background Processing**: Upscaling jobs continue in background with progress monitoring
+  - **Complete Integration**: Full API support, TypeScript interfaces, and seamless gallery integration
 - **Documentation Updated**: January 2025 - Added PostFX output format standards and comprehensive troubleshooting
 
 ## Roadmap
