@@ -7,7 +7,7 @@
 
 ![FAL.ai](https://img.shields.io/badge/Powered_by-FAL.ai-FF6B6B?style=for-the-badge&logo=artificial-intelligence) ![ByteDance Seedance](https://img.shields.io/badge/ByteDance-Seedance_1.0_Lite-000000?style=for-the-badge)
 
-![Version](https://img.shields.io/badge/Version-0.7.0-brightgreen?style=for-the-badge) ![License](https://img.shields.io/badge/License-Personal_Use-blue?style=for-the-badge) ![Status](https://img.shields.io/badge/Status-Stable-success?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-0.8.0-brightgreen?style=for-the-badge) ![License](https://img.shields.io/badge/License-Personal_Use-blue?style=for-the-badge) ![Status](https://img.shields.io/badge/Status-Stable-success?style=for-the-badge)
 
 ---
 
@@ -35,11 +35,12 @@ A comprehensive video generation and post-processing platform that combines Byte
 - **Halation & Bloom Effect**: Cinematic lighting effects with luminous glows, color bleeding, and chromatic aberration  
 - **VHS v1 Effect**: Authentic VHS tape effects with tracking issues, noise, wave distortions, and analog artifacts
 - **GSL Filter v1**: GPU-accelerated shader-based effects including edge detection, pixelation, gaussian blur, wave distortion, and chromatic aberration
+- **Trails v2 Effect**: Enhanced motion trails with per-channel processing, color bleeding, exponential decay, and Gaussian blur
 - **Interlaced Upscaling**: Advanced video upscaling (1.5x-2.0x) with motion compensation, field processing, and edge enhancement
 - **Advanced Parameter Configuration**: Professional presets with custom parameter override controls for all effects
 - **Mathematical Expression Support**: Dynamic effects with custom timing expressions using frame variables
 - **Persistent Configurations**: LocalStorage-based configuration saving with per-effect customization
-- **Color-Themed UI**: Purple (Cathode Ray), Orange (Halation-Bloom), Green (VHS), Blue/Cyan (Upscaling) themed interfaces
+- **Color-Themed UI**: Purple (Cathode Ray), Orange (Halation-Bloom), Green (VHS), Teal (GSL), Pink/Rose (Trails v2), Blue/Cyan (Upscaling) themed interfaces
 - **Dedicated Queue Systems**: Separate processing queues for effects and upscaling with background processing support
 
 ### Video Management
@@ -257,6 +258,7 @@ python -c "import cv2, numpy, moderngl; print('OpenCV, NumPy, and ModernGL insta
 │   ├── halation_bloom_processor.py    # Cinematic lighting effects processor
 │   ├── vhs_v1_processor.py            # Authentic VHS tape effects processor
 │   ├── gsl_v1_processor.py            # GPU-accelerated shader-based effects processor
+│   ├── trails_v2_processor.py         # Enhanced motion trails with per-channel processing
 │   └── upscale_processor.py           # Interlaced upscaling with motion compensation
 ├── docs/
 │   ├── SEEDANCE-DEVTEAM-HANDOFF.md    # Technical specification
@@ -373,6 +375,22 @@ The platform includes a robust video processing pipeline with multiple reliabili
   - Pixelate: Retro pixel art effect with customizable block size
   - Wave Distortion: Sinusoidal displacement for liquid-like effects
   - Chromatic Aberration: RGB channel separation for lens distortion simulation
+
+#### Trails v2 Effect
+- **Trail Strength** (0.1-0.99): Intensity of the trailing effect - how much of the previous frame persists in the next
+- **Decay Rate** (0.01-0.5): How quickly trails fade using exponential decay - lower values create longer, more persistent trails
+- **Color Bleed** (0.0-1.0): Amount of RGB channel separation in trails for chromatic aberration effects
+- **Blur Amount** (0.0-2.0): Gaussian blur applied to the trails for smooth, ethereal motion effects
+- **Threshold** (0.01-0.5): Sensitivity of motion detection - lower values are more sensitive to subtle movements
+- **Per-Channel Processing**: Enhanced algorithm processes red, green, and blue channels independently for realistic color bleeding
+- **Exponential Decay**: Mathematical decay function creates natural-looking trail fade-out over time
+- **Motion Detection**: Advanced frame differencing detects areas of movement for selective trail application
+- **Presets**:
+  - Default: Standard trails v2 effect settings (trail_strength: 0.85, decay_rate: 0.15, color_bleed: 0.3)
+  - Classic Trails: Traditional motion trail effects with minimal color bleeding (trail_strength: 0.75, decay_rate: 0.2)
+  - Psychedelic: Colorful, trippy trails with heavy bleeding and long persistence (trail_strength: 0.9, decay_rate: 0.08, color_bleed: 0.7)
+  - Subtle Enhancement: Light trails for professional effects (trail_strength: 0.6, decay_rate: 0.25, color_bleed: 0.15)
+  - Dream Sequence: Soft, ethereal trails for fantasy scenes (trail_strength: 0.8, decay_rate: 0.1, blur_amount: 1.2)
 
 #### Interlaced Upscaling Effect
 - **Scale Factor** (1.0-4.0): Upscaling multiplier with support for 1.5x and 2.0x recommended settings
@@ -556,7 +574,16 @@ This project is for personal/local use. Check FAL.ai terms for commercial usage.
   - **Edge Enhancement**: Sobel-based sharpening for detail preservation during upscaling
   - **Background Processing**: Upscaling jobs continue in background with progress monitoring
   - **Complete Integration**: Full API support, TypeScript interfaces, and seamless gallery integration
-- **Documentation Updated**: January 2025 - Added PostFX output format standards and comprehensive troubleshooting
+- **v0.8.0**: Enhanced Motion Trails System (January 2025)
+  - **Trails v2 Effect**: Advanced motion trails with per-channel RGB processing for realistic color bleeding
+  - **Exponential Decay Algorithm**: Mathematical decay function for natural-looking trail fade-out over time
+  - **Motion Detection**: Smart frame differencing for selective trail application based on movement sensitivity
+  - **Gaussian Blur Integration**: Smooth, ethereal motion effects with configurable blur intensity
+  - **Five Professional Presets**: Default, Classic Trails, Psychedelic, Subtle Enhancement, and Dream Sequence
+  - **Pink/Rose Themed UI**: Distinctive color scheme with lightning bolt iconography
+  - **Complete PostFX Integration**: Full API support, parameter configuration, and progress tracking
+  - **Advanced Parameter Control**: Trail strength, decay rate, color bleed, blur amount, and motion threshold
+- **Documentation Updated**: January 2025 - Added PostFX output format standards, comprehensive troubleshooting, and TrailsV2 documentation
 
 ## Roadmap
 
