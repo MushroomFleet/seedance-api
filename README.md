@@ -63,12 +63,43 @@ A comprehensive video generation and post-processing platform that combines Byte
 - Node.js 18+ 
 - npm or yarn
 - Python 3.7+ with pip
+- **FFmpeg** (required for video post-processing)
 - FAL.ai API key
 
-### Python Dependencies
+### System Dependencies
+
+#### FFmpeg Installation
+FFmpeg is required for video post-processing optimization:
+
+**Windows:**
+- Download from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html)
+- Add to system PATH
+
+**macOS:**
+```bash
+brew install ffmpeg
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt-get update
+sudo apt-get install ffmpeg
+```
+
+#### Python Dependencies
 Install required Python packages:
 ```bash
 pip install opencv-python numpy
+```
+
+### Dependency Verification
+Verify all dependencies are properly installed:
+```bash
+# Check FFmpeg
+ffmpeg -version
+
+# Check Python packages
+python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 ```
 
 ## Installation
@@ -186,11 +217,14 @@ pip install opencv-python numpy
 │       ├── video.ts                   # Video and effect types
 │       └── queue.ts                   # Queue management types
 ├── scripts/
-│   └── cathode_ray_processor.py       # Python video effect processor
+│   └── cathode_ray_processor.py       # Enhanced video effect processor with FFmpeg
 ├── docs/
-│   └── SEEDANCE-DEVTEAM-HANDOFF.md    # Technical specification
+│   ├── SEEDANCE-DEVTEAM-HANDOFF.md    # Technical specification
+│   ├── postfx-output-format.md        # PostFX development standards
+│   └── API_RESPONSE_LOGGING.md        # API logging documentation
 ├── public/
 │   ├── videos/                        # Generated and processed videos
+│   ├── logs/                          # API response logs
 │   └── metadata.json                  # Video metadata storage
 ├── package.json
 ├── next.config.js
@@ -211,6 +245,28 @@ pip install opencv-python numpy
 - **Cost**: $0.18 per 5-second 720p video, $0.36 per 10-second video
 - **Formats**: MP4 with H.264 encoding
 - **Frame Rate**: 24 FPS
+
+### Enhanced Video Processing Pipeline
+
+The platform includes a robust video processing pipeline with multiple reliability improvements:
+
+#### Video Generation
+- **H.264 Encoding**: All videos generated with web-compatible H.264 format
+- **Automatic Quality Control**: Validation of generated video files
+- **Retry Logic**: Automatic retry for failed generation attempts
+- **Progress Tracking**: Real-time generation progress updates
+
+#### Post-Processing Pipeline
+- **Multi-Codec Fallback**: H.264 → MJPG → XVID → mp4v codec prioritization
+- **FFmpeg Optimization**: Automatic re-encoding for web compatibility
+- **Video Validation**: Integrity checking before completion
+- **Error Recovery**: Comprehensive error handling and cleanup
+
+#### Thumbnail Generation
+- **Enhanced Error Handling**: Detailed error categorization and logging
+- **Automatic Retry**: Smart retry logic for transient failures
+- **CORS Support**: Proper cross-origin handling for video streaming
+- **Caching**: Intelligent caching with failure tracking
 
 ### Post-Processing Effect Parameters
 
@@ -264,12 +320,15 @@ pip install opencv-python numpy
 
 1. **"Module not found" errors**: Run `npm install` to ensure all dependencies are installed
 2. **Python not found**: Ensure Python 3.7+ is installed and in PATH
-3. **OpenCV errors**: Install OpenCV with `pip install opencv-python`
-4. **API errors**: Check that your FAL_KEY_SECRET is correct in `.env.local`
-5. **Videos not saving**: Ensure the application has write permissions to the project directory
-6. **Generation fails**: Check console logs for detailed error messages
-7. **Queue not updating**: Verify auto-refresh is enabled and network connectivity
-8. **Post-processing fails**: Check Python installation and OpenCV dependencies
+3. **FFmpeg not found**: Ensure FFmpeg is installed and available in system PATH
+4. **OpenCV errors**: Install OpenCV with `pip install opencv-python`
+5. **API errors**: Check that your FAL_KEY_SECRET is correct in `.env.local`
+6. **Videos not saving**: Ensure the application has write permissions to the project directory
+7. **Generation fails**: Check console logs for detailed error messages
+8. **Queue not updating**: Verify auto-refresh is enabled and network connectivity
+9. **Post-processing fails**: Check Python installation, OpenCV dependencies, and FFmpeg availability
+10. **Thumbnail generation errors**: Check browser console for detailed video loading error information
+11. **Video format compatibility**: Processed videos should automatically be optimized for web playback
 
 ### Error Messages
 
@@ -364,7 +423,13 @@ This project is for personal/local use. Check FAL.ai terms for commercial usage.
 - **v0.2.0**: Added queue management system with real-time tracking
 - **v0.3.0**: Introduced post-processing effects with cathode ray CRT styling
 - **v0.4.0**: Enhanced UI with notifications and advanced video management
-- **Documentation Updated**: July 2025 - Comprehensive README reflecting current implementation
+- **v0.5.0**: Enhanced video processing pipeline with FFmpeg optimization and improved error handling
+  - Multi-codec fallback strategy for better video compatibility
+  - FFmpeg post-processing for web-optimized video output
+  - Enhanced thumbnail generation with retry logic and detailed error reporting
+  - Comprehensive video validation and integrity checking
+  - Improved CORS handling and caching mechanisms
+- **Documentation Updated**: January 2025 - Added PostFX output format standards and comprehensive troubleshooting
 
 ## Roadmap
 
