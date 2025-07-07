@@ -34,6 +34,7 @@ A comprehensive video generation and post-processing platform that combines Byte
 - **Cathode Ray Effect**: Retro CRT monitor styling with screen curvature, scanlines, glow, and color bleeding
 - **Halation & Bloom Effect**: Cinematic lighting effects with luminous glows, color bleeding, and chromatic aberration  
 - **VHS v1 Effect**: Authentic VHS tape effects with tracking issues, noise, wave distortions, and analog artifacts
+- **GSL Filter v1**: GPU-accelerated shader-based effects including edge detection, pixelation, gaussian blur, wave distortion, and chromatic aberration
 - **Interlaced Upscaling**: Advanced video upscaling (1.5x-2.0x) with motion compensation, field processing, and edge enhancement
 - **Advanced Parameter Configuration**: Professional presets with custom parameter override controls for all effects
 - **Mathematical Expression Support**: Dynamic effects with custom timing expressions using frame variables
@@ -66,6 +67,7 @@ A comprehensive video generation and post-processing platform that combines Byte
 - **Python 3**: Video effect processing engine
 - **OpenCV**: Computer vision and video manipulation
 - **NumPy**: Numerical computing for effect algorithms
+- **ModernGL**: GPU-accelerated OpenGL processing for shader-based effects
 
 ### Storage
 - **Local File System**: Video file storage
@@ -102,7 +104,7 @@ sudo apt-get install ffmpeg
 #### Python Dependencies
 Install required Python packages:
 ```bash
-pip install opencv-python numpy
+pip install opencv-python numpy moderngl
 ```
 
 ### Dependency Verification
@@ -112,7 +114,7 @@ Verify all dependencies are properly installed:
 ffmpeg -version
 
 # Check Python packages
-python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
+python -c "import cv2, numpy, moderngl; print('OpenCV, NumPy, and ModernGL installed successfully')"
 ```
 
 ## Installation
@@ -125,7 +127,7 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 
 3. Install Python dependencies:
    ```bash
-   pip install opencv-python numpy
+   pip install opencv-python numpy moderngl
    ```
 
 4. Set up environment variables:
@@ -254,6 +256,7 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 │   ├── cathode_ray_processor.py       # CRT monitor effects with configurable parameters
 │   ├── halation_bloom_processor.py    # Cinematic lighting effects processor
 │   ├── vhs_v1_processor.py            # Authentic VHS tape effects processor
+│   ├── gsl_v1_processor.py            # GPU-accelerated shader-based effects processor
 │   └── upscale_processor.py           # Interlaced upscaling with motion compensation
 ├── docs/
 │   ├── SEEDANCE-DEVTEAM-HANDOFF.md    # Technical specification
@@ -351,6 +354,25 @@ The platform includes a robust video processing pipeline with multiple reliabili
   - Authentic VHS: Realistic VHS tape characteristics
   - Extreme Degradation: Heavy distortion and multiple generation loss
   - Subtle Effects: Light VHS touch with minimal distortion
+
+#### GSL Filter v1 Effect
+- **Effect Preset**: Custom, Grayscale, Edge Detection, Gaussian Blur, Pixelate, Wave Distortion, Chromatic Aberration
+- **Intensity** (0.0-5.0): Overall strength of the selected effect
+- **Blur Radius** (0.1-10.0): Size of gaussian blur kernel for smoothing effects
+- **Edge Threshold** (0.0-1.0): Sensitivity level for edge detection algorithms
+- **Pixelate Factor** (1-64): Size of pixelation blocks for retro pixel art effects
+- **Wave Amplitude** (0.0-1.0): Strength of wave distortion displacement
+- **Wave Frequency** (0.1-50.0): Speed and density of wave pattern oscillations
+- **Chromatic Shift** (0.0-0.1): Amount of color channel separation for aberration effects
+- **GPU Acceleration**: Uses OpenGL shaders for real-time processing performance
+- **Presets**:
+  - Custom: Default pixelate effect with moderate settings
+  - Grayscale: Luminance-based black and white conversion
+  - Edge Detection: Sobel-based edge highlighting with adjustable threshold
+  - Gaussian Blur: Professional smoothing with configurable radius
+  - Pixelate: Retro pixel art effect with customizable block size
+  - Wave Distortion: Sinusoidal displacement for liquid-like effects
+  - Chromatic Aberration: RGB channel separation for lens distortion simulation
 
 #### Interlaced Upscaling Effect
 - **Scale Factor** (1.0-4.0): Upscaling multiplier with support for 1.5x and 2.0x recommended settings
