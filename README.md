@@ -1,4 +1,15 @@
 # Seedance Video Generator & Post-Processing Platform
+## Rev7 = [stable]
+
+![Next.js](https://img.shields.io/badge/Next.js-15.3.5-black?style=for-the-badge&logo=next.js) ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript) ![Python](https://img.shields.io/badge/Python-3.7+-3776AB?style=for-the-badge&logo=python)
+
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8?style=for-the-badge&logo=opencv) ![FFmpeg](https://img.shields.io/badge/FFmpeg-latest-007808?style=for-the-badge&logo=ffmpeg) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css) ![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=node.js)
+
+![FAL.ai](https://img.shields.io/badge/Powered_by-FAL.ai-FF6B6B?style=for-the-badge&logo=artificial-intelligence) ![ByteDance Seedance](https://img.shields.io/badge/ByteDance-Seedance_1.0_Lite-000000?style=for-the-badge)
+
+![Version](https://img.shields.io/badge/Version-0.7.0-brightgreen?style=for-the-badge) ![License](https://img.shields.io/badge/License-Personal_Use-blue?style=for-the-badge) ![Status](https://img.shields.io/badge/Status-Stable-success?style=for-the-badge)
+
+---
 
 A comprehensive video generation and post-processing platform that combines ByteDance's Seedance AI model with advanced video effects. Generate high-quality videos from images and text prompts, then enhance them with retro post-processing effects including cathode ray tube (CRT) styling.
 
