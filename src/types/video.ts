@@ -38,7 +38,7 @@ export interface VideoMetadata {
 export interface PostFXJob {
   id: string;
   sourceVideoId: string;
-  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1' | 'trails-v2';
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress?: number;
   outputVideoId?: string;
@@ -101,6 +101,14 @@ export interface GSLv1Params {
   wave_amplitude: number;
   wave_frequency: number;
   chromatic_shift: number;
+}
+
+export interface TrailsV2Params {
+  trail_strength: number;
+  decay_rate: number;
+  color_bleed: number;
+  blur_amount: number;
+  threshold: number;
 }
 
 export interface GenerationOptions {

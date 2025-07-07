@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { VHSv1Params, HalationBloomParams, CathodeRayParams, GSLv1Params } from '@/types/video';
+import { VHSv1Params, HalationBloomParams, CathodeRayParams, GSLv1Params, TrailsV2Params } from '@/types/video';
 
 interface EffectsConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1' | 'trails-v2';
   onSaveConfig: (config: any) => void;
   initialConfig?: any;
 }
@@ -200,6 +200,65 @@ const VHS_PRESETS = {
   }
 };
 
+// Trails v2 presets based on documentation
+const TRAILS_V2_PRESETS = {
+  default: {
+    name: "Default",
+    description: "Standard trails v2 effect settings",
+    config: {
+      trail_strength: 0.85,
+      decay_rate: 0.15,
+      color_bleed: 0.3,
+      blur_amount: 0.5,
+      threshold: 0.1
+    }
+  },
+  classic: {
+    name: "Classic Trails",
+    description: "Traditional motion trail effects",
+    config: {
+      trail_strength: 0.75,
+      decay_rate: 0.2,
+      color_bleed: 0.0,
+      blur_amount: 0.25,
+      threshold: 0.15
+    }
+  },
+  psychedelic: {
+    name: "Psychedelic",
+    description: "Colorful, trippy trails with heavy bleeding",
+    config: {
+      trail_strength: 0.9,
+      decay_rate: 0.08,
+      color_bleed: 0.7,
+      blur_amount: 0.6,
+      threshold: 0.05
+    }
+  },
+  subtle: {
+    name: "Subtle Enhancement",
+    description: "Light trails for professional effects",
+    config: {
+      trail_strength: 0.6,
+      decay_rate: 0.25,
+      color_bleed: 0.15,
+      blur_amount: 0.4,
+      threshold: 0.25
+    }
+  },
+  dreamlike: {
+    name: "Dream Sequence",
+    description: "Soft, ethereal trails for fantasy scenes",
+    config: {
+      trail_strength: 0.8,
+      decay_rate: 0.1,
+      color_bleed: 0.4,
+      blur_amount: 1.2,
+      threshold: 0.08
+    }
+  }
+};
+
 // GSL Filter v1 presets based on documentation
 const GSL_PRESETS = {
   default: {
@@ -309,10 +368,11 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
   onSaveConfig,
   initialConfig
 }) => {
-  const [config, setConfig] = useState<VHSv1Params | HalationBloomParams | CathodeRayParams | GSLv1Params>(
+  const [config, setConfig] = useState<VHSv1Params | HalationBloomParams | CathodeRayParams | GSLv1Params | TrailsV2Params>(
     effect === 'vhs-v1' ? VHS_PRESETS.default.config : 
     effect === 'halation-bloom' ? HALATION_BLOOM_PRESETS.default.config :
     effect === 'gsl-v1' ? GSL_PRESETS.default.config :
+    effect === 'trails-v2' ? TRAILS_V2_PRESETS.default.config :
     CATHODE_RAY_PRESETS.static.config
   );
   const [selectedPreset, setSelectedPreset] = useState<string>(effect === 'cathode-ray' ? 'static' : 'default');
@@ -368,6 +428,12 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
       }
     } else if (effect === 'cathode-ray') {
       const preset = CATHODE_RAY_PRESETS[presetKey as keyof typeof CATHODE_RAY_PRESETS];
+      if (preset) {
+        setConfig(preset.config);
+        setSelectedPreset(presetKey);
+      }
+    } else if (effect === 'trails-v2') {
+      const preset = TRAILS_V2_PRESETS[presetKey as keyof typeof TRAILS_V2_PRESETS];
       if (preset) {
         setConfig(preset.config);
         setSelectedPreset(presetKey);
@@ -970,6 +1036,112 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
                     />
                     <p className="text-xs text-gray-500 mt-1">Wave pattern frequency</p>
                   </div>
+                </div>
+              </div>
+            </div>
+          ) : effect === 'trails-v2' ? (
+            // Trails v2 Parameters
+            <div className="space-y-8">
+              {/* Motion Trail Controls */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-pink-500 rounded-full mr-2"></span>
+                  Motion Trail Controls
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Trail Strength: {(config as TrailsV2Params).trail_strength.toFixed(2)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="0.99"
+                      step="0.01"
+                      value={(config as TrailsV2Params).trail_strength}
+                      onChange={(e) => handleParameterChange('trail_strength', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-pink"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Intensity of the trailing effect</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Decay Rate: {(config as TrailsV2Params).decay_rate.toFixed(2)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.01"
+                      max="0.5"
+                      step="0.01"
+                      value={(config as TrailsV2Params).decay_rate}
+                      onChange={(e) => handleParameterChange('decay_rate', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-pink"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">How quickly trails fade using exponential decay</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Effects */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-rose-500 rounded-full mr-2"></span>
+                  Visual Effects
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Color Bleed: {(config as TrailsV2Params).color_bleed.toFixed(2)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="1.0"
+                      step="0.05"
+                      value={(config as TrailsV2Params).color_bleed}
+                      onChange={(e) => handleParameterChange('color_bleed', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-pink"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Amount of RGB channel separation in trails</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Blur Amount: {(config as TrailsV2Params).blur_amount.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="2.0"
+                      step="0.1"
+                      value={(config as TrailsV2Params).blur_amount}
+                      onChange={(e) => handleParameterChange('blur_amount', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-pink"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Gaussian blur applied to the trails</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Motion Detection */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-pink-600 rounded-full mr-2"></span>
+                  Motion Detection
+                </h3>
+                <div className="max-w-md">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Threshold: {(config as TrailsV2Params).threshold.toFixed(2)}
+                  </label>
+                  <input
+                    type="range"
+                    min="0.01"
+                    max="0.5"
+                    step="0.01"
+                    value={(config as TrailsV2Params).threshold}
+                    onChange={(e) => handleParameterChange('threshold', parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-pink"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Sensitivity of motion detection (lower = more sensitive)</p>
                 </div>
               </div>
             </div>

@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { LocalVideoFileManager } from '@/lib/file-manager';
-import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params, UpscaleParams, GSLv1Params } from '@/types/video';
+import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params, UpscaleParams, GSLv1Params, TrailsV2Params } from '@/types/video';
 
 const fileManager = new LocalVideoFileManager();
 
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { sourceVideoId, effect, parameters }: { 
       sourceVideoId: string; 
-      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1'; 
-      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params>
+      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1' | 'trails-v2'; 
+      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params> | Partial<TrailsV2Params>
     } = body;
 
     // Validate request
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['cathode-ray', 'halation-bloom', 'vhs-v1', 'upscale', 'gsl-v1'].includes(effect)) {
+    if (!['cathode-ray', 'halation-bloom', 'vhs-v1', 'upscale', 'gsl-v1', 'trails-v2'].includes(effect)) {
       return NextResponse.json(
-        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1, upscale, gsl-v1' },
+        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1, upscale, gsl-v1, trails-v2' },
         { status: 400 }
       );
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 async function processVideoAsync(
   job: PostFXJob, 
   sourceVideo: VideoMetadata, 
-  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params>
+  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params> | Partial<TrailsV2Params>
 ) {
   try {
     // Update job status
@@ -154,6 +154,18 @@ async function processVideoAsync(
       effectParams = { ...defaultParams, ...parameters };
       scriptName = 'gsl_v1_processor.py';
       effectDisplayName = 'GSL Filter v1';
+    } else if (job.effect === 'trails-v2') {
+      // Default parameters for trails v2 effect
+      const defaultParams: TrailsV2Params = {
+        trail_strength: 0.85,
+        decay_rate: 0.15,
+        color_bleed: 0.3,
+        blur_amount: 0.5,
+        threshold: 0.1
+      };
+      effectParams = { ...defaultParams, ...parameters };
+      scriptName = 'trails_v2_processor.py';
+      effectDisplayName = 'Trails v2';
     } else if (job.effect === 'upscale') {
       // Default parameters for upscale effect
       const defaultParams: UpscaleParams = {

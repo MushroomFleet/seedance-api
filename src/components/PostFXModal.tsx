@@ -21,7 +21,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [selectedEffect, setSelectedEffect] = useState<'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1'>('cathode-ray');
+  const [selectedEffect, setSelectedEffect] = useState<'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1' | 'trails-v2'>('cathode-ray');
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [effectParameters, setEffectParameters] = useState<any>(null);
 
@@ -138,7 +138,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold text-gray-800">Choose Effect</h3>
-              {(selectedEffect === 'vhs-v1' || selectedEffect === 'halation-bloom' || selectedEffect === 'cathode-ray' || selectedEffect === 'gsl-v1') && !isProcessing && (
+              {(selectedEffect === 'vhs-v1' || selectedEffect === 'halation-bloom' || selectedEffect === 'cathode-ray' || selectedEffect === 'gsl-v1' || selectedEffect === 'trails-v2') && !isProcessing && (
                 <button
                   onClick={() => setShowConfigModal(true)}
                   className={`px-3 py-1 text-sm rounded-lg transition-colors flex items-center space-x-1 ${
@@ -148,6 +148,8 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                       ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                       : selectedEffect === 'gsl-v1'
                       ? 'bg-teal-100 text-teal-700 hover:bg-teal-200'
+                      : selectedEffect === 'trails-v2'
+                      ? 'bg-pink-100 text-pink-700 hover:bg-pink-200'
                       : 'bg-purple-100 text-purple-700 hover:bg-purple-200'
                   }`}
                 >
@@ -291,6 +293,39 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                   )}
                 </div>
               </div>
+
+              {/* Trails v2 Effect */}
+              <div 
+                onClick={() => !isProcessing && setSelectedEffect('trails-v2')}
+                className={`rounded-lg p-4 border cursor-pointer transition-all ${
+                  selectedEffect === 'trails-v2' 
+                    ? 'bg-gradient-to-r from-pink-100 to-rose-100 border-pink-300 ring-2 ring-pink-200' 
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                } ${isProcessing ? 'cursor-not-allowed opacity-60' : ''}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    selectedEffect === 'trails-v2' ? 'bg-pink-500' : 'bg-gray-400'
+                  }`}>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800">Trails v2 Effect</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Enhanced motion trails with per-channel processing, color bleeding, and exponential decay
+                    </p>
+                  </div>
+                  {selectedEffect === 'trails-v2' && (
+                    <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -304,7 +339,10 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                     Applying {
                       selectedEffect === 'cathode-ray' ? 'cathode ray' : 
                       selectedEffect === 'halation-bloom' ? 'halation & bloom' : 
-                      'VHS v1'
+                      selectedEffect === 'vhs-v1' ? 'VHS v1' :
+                      selectedEffect === 'gsl-v1' ? 'GSL filter v1' :
+                      selectedEffect === 'trails-v2' ? 'trails v2' :
+                      'unknown'
                     } effect...
                   </span>
                   <span>{Math.round(progress)}%</span>
