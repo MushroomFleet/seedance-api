@@ -20,13 +20,13 @@ A comprehensive video generation and post-processing platform that combines Byte
 - **Queue Control**: Remove pending requests from queue
 
 ### Post-Processing Effects
-- **Cathode Ray Effect**: Retro CRT monitor styling with configurable parameters
-- **Screen Curvature**: Simulate vintage monitor screen curvature
-- **Scanlines**: Add authentic CRT scanline effects
-- **Glow Effects**: Screen glow and phosphor persistence simulation
-- **Color Bleeding**: RGB color separation effects
-- **Dynamic Noise**: Film grain and signal interference
-- **Effect Presets**: Static, fluctuating, degraded, and custom timing modes
+- **Cathode Ray Effect**: Retro CRT monitor styling with screen curvature, scanlines, glow, and color bleeding
+- **Halation & Bloom Effect**: Cinematic lighting effects with luminous glows, color bleeding, and chromatic aberration  
+- **VHS v1 Effect**: Authentic VHS tape effects with tracking issues, noise, wave distortions, and analog artifacts
+- **Advanced Parameter Configuration**: Professional presets with custom parameter override controls
+- **Mathematical Expression Support**: Dynamic effects with custom timing expressions using frame variables
+- **Persistent Configurations**: LocalStorage-based configuration saving with per-effect customization
+- **Color-Themed UI**: Purple (Cathode Ray), Orange (Halation-Bloom), Green (VHS) themed interfaces
 
 ### Video Management
 - **Local Storage**: Videos automatically saved to `./public/videos/` directory
@@ -168,15 +168,18 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 
 1. **Open Gallery**: Click "View Gallery" to browse existing videos
 2. **Select Video**: Choose a video for post-processing
-3. **Apply Effects**: Click the effect button on a video thumbnail
-4. **Configure Effect**: Choose from preset configurations:
-   - **Static**: Consistent effect throughout
-   - **Fluctuating**: Subtle variations over time
-   - **Degraded**: Progressive signal degradation
-   - **Custom**: Define custom timing expressions
-5. **Start Processing**: Apply the cathode ray effect
-6. **Monitor Progress**: Watch processing progress
-7. **View Result**: Processed video is saved with effect suffix
+3. **Choose Effect**: Select from three available effects:
+   - **Cathode Ray**: Retro CRT monitor effects with screen curvature and scanlines
+   - **Halation & Bloom**: Cinematic lighting effects with luminous glows
+   - **VHS v1**: Authentic VHS tape artifacts with tracking issues and noise
+4. **Configure Parameters**: Click "Configure" button to customize effect settings:
+   - **Professional Presets**: Choose from carefully crafted preset configurations
+   - **Custom Parameters**: Override individual parameters with sliders and controls
+   - **Mathematical Expressions**: Use custom timing expressions for dynamic effects (Cathode Ray)
+   - **Persistent Settings**: Configurations are automatically saved per effect type
+5. **Apply Effect**: Start processing with your configured parameters
+6. **Monitor Progress**: Watch real-time processing progress with color-coded indicators
+7. **View Result**: Processed video is saved with effect-specific suffix and timestamp
 
 ### Managing Videos
 
@@ -217,7 +220,9 @@ python -c "import cv2, numpy; print('OpenCV and NumPy installed successfully')"
 │       ├── video.ts                   # Video and effect types
 │       └── queue.ts                   # Queue management types
 ├── scripts/
-│   └── cathode_ray_processor.py       # Enhanced video effect processor with FFmpeg
+│   ├── cathode_ray_processor.py       # CRT monitor effects with configurable parameters
+│   ├── halation_bloom_processor.py    # Cinematic lighting effects processor
+│   └── vhs_v1_processor.py            # Authentic VHS tape effects processor
 ├── docs/
 │   ├── SEEDANCE-DEVTEAM-HANDOFF.md    # Technical specification
 │   ├── postfx-output-format.md        # PostFX development standards
@@ -271,16 +276,49 @@ The platform includes a robust video processing pipeline with multiple reliabili
 ### Post-Processing Effect Parameters
 
 #### Cathode Ray Effect
-- **Screen Curvature** (0.0-1.0): Simulates vintage monitor curvature
-- **Scanline Intensity** (0.0-1.0): Strength of horizontal scanlines
-- **Glow Amount** (0.0-1.0): Screen phosphor glow effect
-- **Color Bleeding** (0.0-1.0): RGB color separation
-- **Noise Amount** (0.0-1.0): Signal interference and grain
+- **Preset Mode**: Static, Fluctuating, Degraded, Custom mathematical expressions
+- **Custom Expression**: Mathematical expressions with frame variable `t` (e.g., `sin(t/10) * 0.1 + 0.2`)
+- **Screen Curvature** (0.0-1.0): Simulates vintage monitor curvature and barrel distortion
+- **Scanline Intensity** (0.0-1.0): Strength of horizontal scanlines typical of CRT displays
+- **Glow Amount** (0.0-1.0): Screen phosphor glow and bloom around bright areas
+- **Color Bleeding** (0.0-1.0): RGB color separation and fringing between pixels
+- **Noise Amount** (0.0-0.5): Random screen interference and grain
 - **Presets**: 
-  - Static: Consistent effect
-  - Fluctuating: `0.8 + 0.2 * sin(t / 5)`
-  - Degraded: `max(0.5, 1.0 - t / (total_frames * 2))`
-  - Custom: User-defined expressions with `t` (time) variable
+  - Static: Consistent effect intensity
+  - Fluctuating: `sin(t/5) * 0.15 + 0.25` - Subtle pulsing effect
+  - Degraded: `max(0.1, 1 - t/200)` - Gradually reduces intensity
+  - Custom: User-defined mathematical expressions
+
+#### Halation & Bloom Effect
+- **Effect Mode**: Halation, Bloom, or Both effects combined
+- **Intensity** (0.0-5.0): Overall strength of the halation/bloom effect
+- **Threshold** (0.0-1.0): Brightness level where effect begins to appear
+- **Radius** (1-100): Size and spread of the glow effect
+- **Chromatic Aberration** (0.0-2.0): Color separation around bright areas
+- **Temporal Variation** (0.0-1.0): How much the effect varies over time
+- **Red Offset** (0.5-2.0): Spread of red channel in halation for authentic film look
+- **Presets**:
+  - Default: Standard halation & bloom settings
+  - Classic Film: Authentic film halation characteristics
+  - Anamorphic Look: Modern cinematic anamorphic lens effect
+  - Subtle Enhancement: Light bloom for gentle enhancement
+  - Dream Sequence: Ethereal glow for fantasy scenes
+
+#### VHS v1 Effect
+- **Luma Compression Rate** (0.1-10.0): Controls brightness compression artifacts
+- **Luma Noise Sigma** (0.0-100.0): Intensity of brightness noise
+- **Luma Noise Mean** (-50.0-50.0): Brightness offset of noise
+- **Chroma Compression Rate** (0.1-10.0): Controls color bleeding and artifacts
+- **Chroma Noise Intensity** (0.0-50.0): Intensity of color distortion
+- **Vertical Blur** (1-21): Vertical smearing effect from tracking issues
+- **Horizontal Blur** (1-21): Horizontal smearing effect
+- **Border Size** (0.0-10.0): Right edge black border typical of VHS
+- **Generations** (1-10): Simulates multiple VHS copy generations
+- **Presets**:
+  - Default: Standard VHS effect settings
+  - Authentic VHS: Realistic VHS tape characteristics
+  - Extreme Degradation: Heavy distortion and multiple generation loss
+  - Subtle Effects: Light VHS touch with minimal distortion
 
 ## Local Storage
 
@@ -429,14 +467,24 @@ This project is for personal/local use. Check FAL.ai terms for commercial usage.
   - Enhanced thumbnail generation with retry logic and detailed error reporting
   - Comprehensive video validation and integrity checking
   - Improved CORS handling and caching mechanisms
+- **v0.6.0**: Comprehensive Multi-Effect Parameter Configuration System (January 2025)
+  - **Three Complete Effect Systems**: Cathode Ray, Halation & Bloom, VHS v1 with full parameter control
+  - **Advanced EffectsConfigModal**: Professional preset system with custom parameter override controls
+  - **Mathematical Expression Support**: Dynamic effect timing with custom expressions using frame variables
+  - **Persistent Configuration**: LocalStorage-based per-effect configuration saving and loading
+  - **Color-Themed UI**: Purple, Orange, Green themed interfaces for each effect type
+  - **Professional Presets**: 4-5 carefully crafted presets per effect with detailed parameter documentation
+  - **Enhanced PostFX API**: Multi-effect processing support with parameter validation
 - **Documentation Updated**: January 2025 - Added PostFX output format standards and comprehensive troubleshooting
 
 ## Roadmap
 
 ### Planned Features
-- Additional post-processing effects (VHS, film grain, color grading)
-- Batch processing capabilities
-- Video export options and formats
-- Effect parameter presets and sharing
-- Performance optimizations for large videos
+- Additional post-processing effects (film grain, color grading, particle systems)
+- Batch processing capabilities for multiple videos
+- Video export options and additional formats
+- Effect preset sharing and community presets
+- Performance optimizations for large video processing
+- Real-time effect preview system
 - Database integration for production deployments
+- Advanced mathematical expression editor with syntax highlighting

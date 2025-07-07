@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { LocalVideoFileManager } from '@/lib/file-manager';
-import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams } from '@/types/video';
+import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params } from '@/types/video';
 
 const fileManager = new LocalVideoFileManager();
 
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { sourceVideoId, effect, parameters }: { 
       sourceVideoId: string; 
-      effect: 'cathode-ray' | 'halation-bloom'; 
-      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams>
+      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1'; 
+      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params>
     } = body;
 
     // Validate request
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['cathode-ray', 'halation-bloom'].includes(effect)) {
+    if (!['cathode-ray', 'halation-bloom', 'vhs-v1'].includes(effect)) {
       return NextResponse.json(
-        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom' },
+        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1' },
         { status: 400 }
       );
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 async function processVideoAsync(
   job: PostFXJob, 
   sourceVideo: VideoMetadata, 
-  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams>
+  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params>
 ) {
   try {
     // Update job status
@@ -123,6 +123,22 @@ async function processVideoAsync(
       effectParams = { ...defaultParams, ...parameters };
       scriptName = 'halation_bloom_processor.py';
       effectDisplayName = 'Halation & Bloom';
+    } else if (job.effect === 'vhs-v1') {
+      // Default parameters for VHS v1 effect
+      const defaultParams: VHSv1Params = {
+        luma_compression_rate: 1.0,
+        luma_noise_sigma: 30.0,
+        luma_noise_mean: 0.0,
+        chroma_compression_rate: 1.0,
+        chroma_noise_intensity: 10.0,
+        vertical_blur: 1,
+        horizontal_blur: 1,
+        border_size: 1.7,
+        generations: 3
+      };
+      effectParams = { ...defaultParams, ...parameters };
+      scriptName = 'vhs_v1_processor.py';
+      effectDisplayName = 'VHS v1';
     } else {
       throw new Error(`Unsupported effect: ${job.effect}`);
     }

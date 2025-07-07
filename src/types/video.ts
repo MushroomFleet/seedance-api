@@ -38,7 +38,7 @@ export interface VideoMetadata {
 export interface PostFXJob {
   id: string;
   sourceVideoId: string;
-  effect: 'cathode-ray' | 'halation-bloom';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1';
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress?: number;
   outputVideoId?: string;
@@ -64,6 +64,18 @@ export interface HalationBloomParams {
   chromatic_aberration: number;
   temporal_variation: number;
   red_offset: number;
+}
+
+export interface VHSv1Params {
+  luma_compression_rate: number;
+  luma_noise_sigma: number;
+  luma_noise_mean: number;
+  chroma_compression_rate: number;
+  chroma_noise_intensity: number;
+  vertical_blur: number;
+  horizontal_blur: number;
+  border_size: number;
+  generations: number;
 }
 
 export interface GenerationOptions {
