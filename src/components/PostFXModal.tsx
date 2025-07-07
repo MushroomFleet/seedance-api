@@ -20,6 +20,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [selectedEffect, setSelectedEffect] = useState<'cathode-ray' | 'halation-bloom'>('cathode-ray');
 
   const startProcessing = async () => {
     if (!selectedVideo) return;
@@ -38,7 +39,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
         },
         body: JSON.stringify({
           sourceVideoId: selectedVideo.id,
-          effect: 'cathode-ray'
+          effect: selectedEffect
         }),
       });
 
@@ -131,19 +132,71 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
 
           {/* Effect Selection */}
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Effect</h3>
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg p-4 border border-purple-200">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">Choose Effect</h3>
+            <div className="space-y-3">
+              {/* Cathode Ray Effect */}
+              <div 
+                onClick={() => !isProcessing && setSelectedEffect('cathode-ray')}
+                className={`rounded-lg p-4 border cursor-pointer transition-all ${
+                  selectedEffect === 'cathode-ray' 
+                    ? 'bg-gradient-to-r from-purple-100 to-blue-100 border-purple-300 ring-2 ring-purple-200' 
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                } ${isProcessing ? 'cursor-not-allowed opacity-60' : ''}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    selectedEffect === 'cathode-ray' ? 'bg-purple-500' : 'bg-gray-400'
+                  }`}>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800">Cathode Ray Effect</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Adds retro CRT monitor effects including screen curvature, scanlines, glow, and color bleeding
+                    </p>
+                  </div>
+                  {selectedEffect === 'cathode-ray' && (
+                    <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-800">Cathode Ray Effect</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Adds retro CRT monitor effects including screen curvature, scanlines, glow, and color bleeding
-                  </p>
+              </div>
+
+              {/* Halation & Bloom Effect */}
+              <div 
+                onClick={() => !isProcessing && setSelectedEffect('halation-bloom')}
+                className={`rounded-lg p-4 border cursor-pointer transition-all ${
+                  selectedEffect === 'halation-bloom' 
+                    ? 'bg-gradient-to-r from-orange-100 to-pink-100 border-orange-300 ring-2 ring-orange-200' 
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                } ${isProcessing ? 'cursor-not-allowed opacity-60' : ''}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    selectedEffect === 'halation-bloom' ? 'bg-orange-500' : 'bg-gray-400'
+                  }`}>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800">Halation & Bloom Effect</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Adds cinematic lighting effects with luminous glows, color bleeding, and chromatic aberration
+                    </p>
+                  </div>
+                  {selectedEffect === 'halation-bloom' && (
+                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -155,12 +208,16 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
               <h3 className="text-lg font-semibold text-gray-800 mb-3">Processing</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>Applying cathode ray effect...</span>
+                  <span>
+                    Applying {selectedEffect === 'cathode-ray' ? 'cathode ray' : 'halation & bloom'} effect...
+                  </span>
                   <span>{Math.round(progress)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
-                    className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      selectedEffect === 'cathode-ray' ? 'bg-purple-500' : 'bg-orange-500'
+                    }`}
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>

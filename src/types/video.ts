@@ -38,7 +38,7 @@ export interface VideoMetadata {
 export interface PostFXJob {
   id: string;
   sourceVideoId: string;
-  effect: 'cathode-ray';
+  effect: 'cathode-ray' | 'halation-bloom';
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress?: number;
   outputVideoId?: string;
@@ -54,6 +54,16 @@ export interface CathodeRayParams {
   glow_amount: number;
   color_bleeding: number;
   noise_amount: number;
+}
+
+export interface HalationBloomParams {
+  effect_mode: 'Halation' | 'Bloom' | 'Both';
+  intensity: number;
+  threshold: number;
+  radius: number;
+  chromatic_aberration: number;
+  temporal_variation: number;
+  red_offset: number;
 }
 
 export interface GenerationOptions {

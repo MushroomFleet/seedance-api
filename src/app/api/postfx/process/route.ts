@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { LocalVideoFileManager } from '@/lib/file-manager';
-import { PostFXJob, VideoMetadata, CathodeRayParams } from '@/types/video';
+import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams } from '@/types/video';
 
 const fileManager = new LocalVideoFileManager();
 
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { sourceVideoId, effect, parameters }: { 
       sourceVideoId: string; 
-      effect: 'cathode-ray'; 
-      parameters?: Partial<CathodeRayParams> 
+      effect: 'cathode-ray' | 'halation-bloom'; 
+      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams>
     } = body;
 
     // Validate request
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (effect !== 'cathode-ray') {
+    if (!['cathode-ray', 'halation-bloom'].includes(effect)) {
       return NextResponse.json(
-        { error: 'Unsupported effect. Currently only cathode-ray is supported.' },
+        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom' },
         { status: 400 }
       );
     }
@@ -84,36 +84,59 @@ export async function POST(request: NextRequest) {
 async function processVideoAsync(
   job: PostFXJob, 
   sourceVideo: VideoMetadata, 
-  parameters?: Partial<CathodeRayParams>
+  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams>
 ) {
   try {
     // Update job status
     job.status = 'processing';
     job.progress = 0;
 
-    // Default parameters for cathode ray effect
-    const defaultParams: CathodeRayParams = {
-      preset: 'static',
-      custom_expression: 'sin(t/10) * 0.1 + 0.2',
-      screen_curvature: 0.2,
-      scanline_intensity: 0.3,
-      glow_amount: 0.2,
-      color_bleeding: 0.15,
-      noise_amount: 0.05
-    };
+    let effectParams: any;
+    let scriptName: string;
+    let effectDisplayName: string;
 
-    const effectParams = { ...defaultParams, ...parameters };
+    if (job.effect === 'cathode-ray') {
+      // Default parameters for cathode ray effect
+      const defaultParams: CathodeRayParams = {
+        preset: 'static',
+        custom_expression: 'sin(t/10) * 0.1 + 0.2',
+        screen_curvature: 0.2,
+        scanline_intensity: 0.3,
+        glow_amount: 0.2,
+        color_bleeding: 0.15,
+        noise_amount: 0.05
+      };
+      effectParams = { ...defaultParams, ...parameters };
+      scriptName = 'cathode_ray_processor.py';
+      effectDisplayName = 'Cathode Ray';
+    } else if (job.effect === 'halation-bloom') {
+      // Default parameters for halation bloom effect
+      const defaultParams: HalationBloomParams = {
+        effect_mode: 'Both',
+        intensity: 1.0,
+        threshold: 0.6,
+        radius: 15,
+        chromatic_aberration: 0.5,
+        temporal_variation: 0.2,
+        red_offset: 1.2
+      };
+      effectParams = { ...defaultParams, ...parameters };
+      scriptName = 'halation_bloom_processor.py';
+      effectDisplayName = 'Halation & Bloom';
+    } else {
+      throw new Error(`Unsupported effect: ${job.effect}`);
+    }
 
     // Generate output filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const sourceFilename = sourceVideo.file_path.split('/').pop() || '';
     const baseName = path.basename(sourceFilename, '.mp4');
-    const outputFilename = `${baseName}_cathode-ray_${timestamp}.mp4`;
+    const outputFilename = `${baseName}_${job.effect}_${timestamp}.mp4`;
     
     // File paths
     const inputPath = path.join(process.cwd(), 'public', 'videos', sourceFilename);
     const outputPath = path.join(process.cwd(), 'public', 'videos', outputFilename);
-    const scriptPath = path.join(process.cwd(), 'scripts', 'cathode_ray_processor.py');
+    const scriptPath = path.join(process.cwd(), 'scripts', scriptName);
 
     // Prepare Python script arguments
     const paramsJson = JSON.stringify(effectParams);
@@ -121,6 +144,7 @@ async function processVideoAsync(
 
     console.log('Starting video processing:', {
       jobId: job.id,
+      effect: job.effect,
       inputPath,
       outputPath,
       params: effectParams
@@ -150,13 +174,13 @@ async function processVideoAsync(
         try {
           // Create new video metadata
           const newVideoId = crypto.randomUUID();
-          const effectsApplied = [...(sourceVideo.effects_applied || []), 'cathode-ray'];
+          const effectsApplied = [...(sourceVideo.effects_applied || []), job.effect];
           
           const newMetadata: VideoMetadata = {
             ...sourceVideo,
             id: newVideoId,
-            title: `${sourceVideo.title} (Cathode Ray)`,
-            description: `${sourceVideo.description} - Processed with cathode ray effect`,
+            title: `${sourceVideo.title} (${effectDisplayName})`,
+            description: `${sourceVideo.description} - Processed with ${effectDisplayName.toLowerCase()} effect`,
             file_path: `/api/videos/stream/${outputFilename}`,
             effects_applied: effectsApplied,
             created_at: new Date().toISOString()
@@ -172,6 +196,7 @@ async function processVideoAsync(
 
           console.log('Video processing completed:', {
             jobId: job.id,
+            effect: job.effect,
             outputVideoId: newVideoId,
             outputPath
           });
