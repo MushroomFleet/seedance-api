@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { LocalVideoFileManager } from '@/lib/file-manager';
-import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params } from '@/types/video';
+import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params, UpscaleParams } from '@/types/video';
 
 const fileManager = new LocalVideoFileManager();
 
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { sourceVideoId, effect, parameters }: { 
       sourceVideoId: string; 
-      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1'; 
-      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params>
+      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale'; 
+      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams>
     } = body;
 
     // Validate request
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['cathode-ray', 'halation-bloom', 'vhs-v1'].includes(effect)) {
+    if (!['cathode-ray', 'halation-bloom', 'vhs-v1', 'upscale'].includes(effect)) {
       return NextResponse.json(
-        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1' },
+        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1, upscale' },
         { status: 400 }
       );
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 async function processVideoAsync(
   job: PostFXJob, 
   sourceVideo: VideoMetadata, 
-  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params>
+  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams>
 ) {
   try {
     // Update job status
@@ -139,6 +139,24 @@ async function processVideoAsync(
       effectParams = { ...defaultParams, ...parameters };
       scriptName = 'vhs_v1_processor.py';
       effectDisplayName = 'VHS v1';
+    } else if (job.effect === 'upscale') {
+      // Default parameters for upscale effect
+      const defaultParams: UpscaleParams = {
+        input_height: 720,
+        input_width: 1280,
+        field_order: 'top_first',
+        scale_factor: 1.5,
+        blend_factor: 0.25,
+        motion_compensation: 'basic',
+        interpolation_mode: 'bilinear',
+        deinterlace_method: 'blend',
+        field_strength: 1.0,
+        temporal_radius: 1,
+        edge_enhancement: 0.0
+      };
+      effectParams = { ...defaultParams, ...parameters };
+      scriptName = 'upscale_processor.py';
+      effectDisplayName = 'Interlaced Upscale';
     } else {
       throw new Error(`Unsupported effect: ${job.effect}`);
     }

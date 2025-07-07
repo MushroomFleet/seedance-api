@@ -38,7 +38,7 @@ export interface VideoMetadata {
 export interface PostFXJob {
   id: string;
   sourceVideoId: string;
-  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale';
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress?: number;
   outputVideoId?: string;
@@ -76,6 +76,20 @@ export interface VHSv1Params {
   horizontal_blur: number;
   border_size: number;
   generations: number;
+}
+
+export interface UpscaleParams {
+  input_height: number;
+  input_width: number;
+  field_order: 'top_first' | 'bottom_first';
+  scale_factor: number;
+  blend_factor: number;
+  motion_compensation: 'none' | 'basic' | 'advanced';
+  interpolation_mode: 'bilinear' | 'bicubic' | 'nearest';
+  deinterlace_method: 'blend' | 'bob' | 'weave';
+  field_strength: number;
+  temporal_radius: number;
+  edge_enhancement: number;
 }
 
 export interface GenerationOptions {

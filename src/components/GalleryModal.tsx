@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { VideoMetadata } from '@/types/video';
 import { PostFXModal } from './PostFXModal';
+import { UpscaleModal } from './UpscaleModal';
 import { ThumbnailCard } from './ThumbnailCard';
 
 interface GalleryModalProps {
@@ -21,6 +22,7 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
   const [selectedVideo, setSelectedVideo] = useState<VideoMetadata | null>(null);
   const [stats, setStats] = useState({ totalVideos: 0, totalSize: 0 });
   const [isPostFXModalOpen, setIsPostFXModalOpen] = useState(false);
+  const [isUpscaleModalOpen, setIsUpscaleModalOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -207,6 +209,15 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
                     <span>PostFX Queue</span>
                   </button>
                   <button
+                    onClick={() => setIsUpscaleModalOpen(true)}
+                    className="w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 transition-colors flex items-center justify-center space-x-2"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                    </svg>
+                    <span>Upscale Queue</span>
+                  </button>
+                  <button
                     onClick={() => downloadVideo(selectedVideo)}
                     className="w-full py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                   >
@@ -229,6 +240,17 @@ export const GalleryModal: React.FC<GalleryModalProps> = ({
       <PostFXModal
         isOpen={isPostFXModalOpen}
         onClose={() => setIsPostFXModalOpen(false)}
+        selectedVideo={selectedVideo}
+        onVideoProcessed={() => {
+          loadVideos();
+          onRefresh();
+        }}
+      />
+
+      {/* Upscale Modal */}
+      <UpscaleModal
+        isOpen={isUpscaleModalOpen}
+        onClose={() => setIsUpscaleModalOpen(false)}
         selectedVideo={selectedVideo}
         onVideoProcessed={() => {
           loadVideos();
