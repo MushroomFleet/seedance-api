@@ -21,7 +21,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [selectedEffect, setSelectedEffect] = useState<'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1' | 'trails-v2'>('cathode-ray');
+  const [selectedEffect, setSelectedEffect] = useState<'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'vhs-v2' | 'gsl-v1' | 'trails-v2'>('cathode-ray');
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [effectParameters, setEffectParameters] = useState<any>(null);
 
@@ -138,12 +138,14 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
           <div>
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold text-gray-800">Choose Effect</h3>
-              {(selectedEffect === 'vhs-v1' || selectedEffect === 'halation-bloom' || selectedEffect === 'cathode-ray' || selectedEffect === 'gsl-v1' || selectedEffect === 'trails-v2') && !isProcessing && (
+              {(selectedEffect === 'vhs-v1' || selectedEffect === 'vhs-v2' || selectedEffect === 'halation-bloom' || selectedEffect === 'cathode-ray' || selectedEffect === 'gsl-v1' || selectedEffect === 'trails-v2') && !isProcessing && (
                 <button
                   onClick={() => setShowConfigModal(true)}
                   className={`px-3 py-1 text-sm rounded-lg transition-colors flex items-center space-x-1 ${
                     selectedEffect === 'vhs-v1' 
                       ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : selectedEffect === 'vhs-v2'
+                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
                       : selectedEffect === 'halation-bloom'
                       ? 'bg-orange-100 text-orange-700 hover:bg-orange-200'
                       : selectedEffect === 'gsl-v1'
@@ -261,6 +263,39 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                 </div>
               </div>
 
+              {/* VHS v2 Effect */}
+              <div 
+                onClick={() => !isProcessing && setSelectedEffect('vhs-v2')}
+                className={`rounded-lg p-4 border cursor-pointer transition-all ${
+                  selectedEffect === 'vhs-v2' 
+                    ? 'bg-gradient-to-r from-amber-100 to-yellow-100 border-amber-300 ring-2 ring-amber-200' 
+                    : 'bg-gray-50 border-gray-200 hover:border-gray-300'
+                } ${isProcessing ? 'cursor-not-allowed opacity-60' : ''}`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    selectedEffect === 'vhs-v2' ? 'bg-amber-500' : 'bg-gray-400'
+                  }`}>
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-800">VHS v2 Effect</h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Advanced VHS simulation with YIQ processing, signal ringing, chroma noise, and authentic tape speed effects
+                    </p>
+                  </div>
+                  {selectedEffect === 'vhs-v2' && (
+                    <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* GSL Filter v1 Effect */}
               <div 
                 onClick={() => !isProcessing && setSelectedEffect('gsl-v1')}
@@ -340,6 +375,7 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                       selectedEffect === 'cathode-ray' ? 'cathode ray' : 
                       selectedEffect === 'halation-bloom' ? 'halation & bloom' : 
                       selectedEffect === 'vhs-v1' ? 'VHS v1' :
+                      selectedEffect === 'vhs-v2' ? 'VHS v2' :
                       selectedEffect === 'gsl-v1' ? 'GSL filter v1' :
                       selectedEffect === 'trails-v2' ? 'trails v2' :
                       'unknown'
@@ -352,6 +388,9 @@ export const PostFXModal: React.FC<PostFXModalProps> = ({
                     className={`h-2 rounded-full transition-all duration-300 ${
                       selectedEffect === 'cathode-ray' ? 'bg-purple-500' : 
                       selectedEffect === 'halation-bloom' ? 'bg-orange-500' : 
+                      selectedEffect === 'vhs-v2' ? 'bg-amber-500' :
+                      selectedEffect === 'gsl-v1' ? 'bg-teal-500' :
+                      selectedEffect === 'trails-v2' ? 'bg-pink-500' :
                       'bg-green-500'
                     }`}
                     style={{ width: `${progress}%` }}

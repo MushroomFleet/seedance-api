@@ -38,7 +38,7 @@ export interface VideoMetadata {
 export interface PostFXJob {
   id: string;
   sourceVideoId: string;
-  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1' | 'trails-v2';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'vhs-v2' | 'upscale' | 'gsl-v1' | 'trails-v2';
   status: 'queued' | 'processing' | 'completed' | 'failed';
   progress?: number;
   outputVideoId?: string;
@@ -76,6 +76,18 @@ export interface VHSv1Params {
   horizontal_blur: number;
   border_size: number;
   generations: number;
+}
+
+export interface VHSv2Params {
+  composite_preemphasis: number;
+  vhs_out_sharpen: number;
+  color_bleeding: number;
+  video_noise: number;
+  chroma_noise: number;
+  chroma_phase_noise: number;
+  enable_ringing: boolean;
+  ringing_power: number;
+  tape_speed: 'SP' | 'LP' | 'EP';
 }
 
 export interface UpscaleParams {

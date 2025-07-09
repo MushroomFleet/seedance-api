@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { VHSv1Params, HalationBloomParams, CathodeRayParams, GSLv1Params, TrailsV2Params } from '@/types/video';
+import { VHSv1Params, VHSv2Params, HalationBloomParams, CathodeRayParams, GSLv1Params, TrailsV2Params } from '@/types/video';
 
 interface EffectsConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'gsl-v1' | 'trails-v2';
+  effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'vhs-v2' | 'gsl-v1' | 'trails-v2';
   onSaveConfig: (config: any) => void;
   initialConfig?: any;
 }
@@ -200,6 +200,85 @@ const VHS_PRESETS = {
   }
 };
 
+// VHS v2 presets based on documentation
+const VHS_V2_PRESETS = {
+  default: {
+    name: "Default",
+    description: "Standard VHS v2 effect settings",
+    config: {
+      composite_preemphasis: 4.0,
+      vhs_out_sharpen: 2.5,
+      color_bleeding: 5.0,
+      video_noise: 1000.0,
+      chroma_noise: 5000.0,
+      chroma_phase_noise: 25.0,
+      enable_ringing: true,
+      ringing_power: 2,
+      tape_speed: 'SP' as const
+    }
+  },
+  authentic: {
+    name: "Authentic VHS",
+    description: "Clean vintage look with SP quality",
+    config: {
+      composite_preemphasis: 0.0,
+      vhs_out_sharpen: 1.5,
+      color_bleeding: 1.0,
+      video_noise: 5.0,
+      chroma_noise: 0.0,
+      chroma_phase_noise: 0.0,
+      enable_ringing: true,
+      ringing_power: 2,
+      tape_speed: 'SP' as const
+    }
+  },
+  wornTape: {
+    name: "Worn Tape",
+    description: "Heavily degraded EP quality",
+    config: {
+      composite_preemphasis: 2.0,
+      vhs_out_sharpen: 2.0,
+      color_bleeding: 5.0,
+      video_noise: 50.0,
+      chroma_noise: 1000.0,
+      chroma_phase_noise: 15.0,
+      enable_ringing: true,
+      ringing_power: 4,
+      tape_speed: 'EP' as const
+    }
+  },
+  subtle: {
+    name: "Subtle Enhancement",
+    description: "Light VHS touch with minimal artifacts",
+    config: {
+      composite_preemphasis: 0.0,
+      vhs_out_sharpen: 1.2,
+      color_bleeding: 0.5,
+      video_noise: 2.0,
+      chroma_noise: 0.0,
+      chroma_phase_noise: 0.0,
+      enable_ringing: false,
+      ringing_power: 2,
+      tape_speed: 'SP' as const
+    }
+  },
+  extreme: {
+    name: "Extreme Artifacts",
+    description: "Maximum degradation and distortion",
+    config: {
+      composite_preemphasis: 5.0,
+      vhs_out_sharpen: 3.0,
+      color_bleeding: 8.0,
+      video_noise: 100.0,
+      chroma_noise: 5000.0,
+      chroma_phase_noise: 30.0,
+      enable_ringing: true,
+      ringing_power: 6,
+      tape_speed: 'EP' as const
+    }
+  }
+};
+
 // Trails v2 presets based on documentation
 const TRAILS_V2_PRESETS = {
   default: {
@@ -368,8 +447,9 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
   onSaveConfig,
   initialConfig
 }) => {
-  const [config, setConfig] = useState<VHSv1Params | HalationBloomParams | CathodeRayParams | GSLv1Params | TrailsV2Params>(
+  const [config, setConfig] = useState<VHSv1Params | VHSv2Params | HalationBloomParams | CathodeRayParams | GSLv1Params | TrailsV2Params>(
     effect === 'vhs-v1' ? VHS_PRESETS.default.config : 
+    effect === 'vhs-v2' ? VHS_V2_PRESETS.default.config :
     effect === 'halation-bloom' ? HALATION_BLOOM_PRESETS.default.config :
     effect === 'gsl-v1' ? GSL_PRESETS.default.config :
     effect === 'trails-v2' ? TRAILS_V2_PRESETS.default.config :
@@ -395,10 +475,14 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
       // Set default config based on effect type
       const defaultConfig = effect === 'vhs-v1' 
         ? VHS_PRESETS.default.config 
+        : effect === 'vhs-v2'
+        ? VHS_V2_PRESETS.default.config
         : effect === 'halation-bloom' 
         ? HALATION_BLOOM_PRESETS.default.config
         : effect === 'gsl-v1'
         ? GSL_PRESETS.default.config
+        : effect === 'trails-v2'
+        ? TRAILS_V2_PRESETS.default.config
         : CATHODE_RAY_PRESETS.static.config;
       setConfig(defaultConfig);
       setSelectedPreset(effect === 'cathode-ray' ? 'static' : 'default');
@@ -432,6 +516,12 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
         setConfig(preset.config);
         setSelectedPreset(presetKey);
       }
+    } else if (effect === 'vhs-v2') {
+      const preset = VHS_V2_PRESETS[presetKey as keyof typeof VHS_V2_PRESETS];
+      if (preset) {
+        setConfig(preset.config);
+        setSelectedPreset(presetKey);
+      }
     } else if (effect === 'trails-v2') {
       const preset = TRAILS_V2_PRESETS[presetKey as keyof typeof TRAILS_V2_PRESETS];
       if (preset) {
@@ -441,7 +531,7 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
     }
   };
 
-  const handleParameterChange = (param: string, value: number | string) => {
+  const handleParameterChange = (param: string, value: number | string | boolean) => {
     setConfig(prev => ({
       ...prev,
       [param]: value
@@ -465,6 +555,8 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
       ? HALATION_BLOOM_PRESETS.default.config
       : effect === 'gsl-v1'
       ? GSL_PRESETS.default.config
+      : effect === 'trails-v2'
+      ? TRAILS_V2_PRESETS.default.config
       : CATHODE_RAY_PRESETS.static.config;
     setConfig(defaultConfig);
     setSelectedPreset(effect === 'cathode-ray' ? 'static' : 'default');
@@ -474,16 +566,22 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
   if (!isOpen) return null;
 
   const isVHS = effect === 'vhs-v1';
+  const isVHSv2 = effect === 'vhs-v2';
   const isHalationBloom = effect === 'halation-bloom';
   const isCathodeRay = effect === 'cathode-ray';
   const isGSLv1 = effect === 'gsl-v1';
-  const presets = isVHS ? VHS_PRESETS : isHalationBloom ? HALATION_BLOOM_PRESETS : isGSLv1 ? GSL_PRESETS : CATHODE_RAY_PRESETS;
+  const isTrailsV2 = effect === 'trails-v2';
+  const presets = isVHS ? VHS_PRESETS : isVHSv2 ? VHS_V2_PRESETS : isHalationBloom ? HALATION_BLOOM_PRESETS : isGSLv1 ? GSL_PRESETS : isTrailsV2 ? TRAILS_V2_PRESETS : CATHODE_RAY_PRESETS;
   const themeColors = isVHS 
     ? { gradient: 'from-green-50 to-emerald-50', primary: 'green', slider: 'slider-green' }
+    : isVHSv2
+    ? { gradient: 'from-amber-50 to-yellow-50', primary: 'amber', slider: 'slider-amber' }
     : isHalationBloom 
     ? { gradient: 'from-orange-50 to-pink-50', primary: 'orange', slider: 'slider-orange' }
     : isGSLv1
     ? { gradient: 'from-teal-50 to-cyan-50', primary: 'teal', slider: 'slider-teal' }
+    : isTrailsV2
+    ? { gradient: 'from-pink-50 to-rose-50', primary: 'pink', slider: 'slider-pink' }
     : { gradient: 'from-purple-50 to-blue-50', primary: 'purple', slider: 'slider-purple' };
 
   return (
@@ -496,6 +594,7 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
               {isVHS ? 'VHS v1 Effect Configuration' : 
                isHalationBloom ? 'Halation & Bloom Effect Configuration' : 
                isGSLv1 ? 'GSL Filter v1 Configuration' :
+               isTrailsV2 ? 'Trails v2 Effect Configuration' :
                'Cathode Ray Effect Configuration'}
             </h2>
             <p className="text-sm text-gray-600 mt-1">
@@ -505,6 +604,8 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
                 ? 'Customize parameters for cinematic lighting effects'
                 : isGSLv1
                 ? 'Customize parameters for advanced shader-based effects'
+                : isTrailsV2
+                ? 'Customize parameters for motion trail effects'
                 : 'Customize parameters for retro CRT monitor effects'
               }
             </p>
@@ -549,7 +650,185 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
           </div>
 
           {/* Parameter Controls */}
-          {isVHS ? (
+          {isVHSv2 ? (
+            // VHS v2 Parameters
+            <div className="space-y-8">
+              {/* Signal Processing */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-amber-500 rounded-full mr-2"></span>
+                  Signal Processing
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Composite Pre-emphasis: {(config as VHSv2Params).composite_preemphasis.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="8.0"
+                      step="0.1"
+                      value={(config as VHSv2Params).composite_preemphasis}
+                      onChange={(e) => handleParameterChange('composite_preemphasis', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-amber"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Controls the emphasis of the composite video signal</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      VHS Output Sharpening: {(config as VHSv2Params).vhs_out_sharpen.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="1.0"
+                      max="5.0"
+                      step="0.1"
+                      value={(config as VHSv2Params).vhs_out_sharpen}
+                      onChange={(e) => handleParameterChange('vhs_out_sharpen', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-amber"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Post-processing sharpening applied to the final image</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Noise Controls */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                  Noise Controls
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Video Noise: {(config as VHSv2Params).video_noise.toFixed(0)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="4200.0"
+                      step="1.0"
+                      value={(config as VHSv2Params).video_noise}
+                      onChange={(e) => handleParameterChange('video_noise', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-amber"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Adds random noise to the luminance channel</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chroma Noise: {(config as VHSv2Params).chroma_noise.toFixed(0)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="16384.0"
+                      step="1.0"
+                      value={(config as VHSv2Params).chroma_noise}
+                      onChange={(e) => handleParameterChange('chroma_noise', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-amber"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Adds noise specifically to the color channels</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Chroma Phase Noise: {(config as VHSv2Params).chroma_phase_noise.toFixed(0)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="50.0"
+                      step="1.0"
+                      value={(config as VHSv2Params).chroma_phase_noise}
+                      onChange={(e) => handleParameterChange('chroma_phase_noise', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-amber"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Simulates phase errors in the color signal</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Effects */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-orange-500 rounded-full mr-2"></span>
+                  Visual Effects
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Color Bleeding: {(config as VHSv2Params).color_bleeding.toFixed(1)}
+                    </label>
+                    <input
+                      type="range"
+                      min="0.0"
+                      max="10.0"
+                      step="0.1"
+                      value={(config as VHSv2Params).color_bleeding}
+                      onChange={(e) => handleParameterChange('color_bleeding', parseFloat(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-amber"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Simulates color bleeding artifacts common in VHS tapes</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Enable Ringing: {(config as VHSv2Params).enable_ringing ? 'Yes' : 'No'}
+                    </label>
+                    <button
+                      onClick={() => handleParameterChange('enable_ringing', !(config as VHSv2Params).enable_ringing)}
+                      className={`w-full p-2 rounded-lg border-2 transition-colors ${
+                        (config as VHSv2Params).enable_ringing
+                          ? 'bg-amber-500 border-amber-500 text-white'
+                          : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {(config as VHSv2Params).enable_ringing ? 'Enabled' : 'Disabled'}
+                    </button>
+                    <p className="text-xs text-gray-500 mt-1">Toggles signal ringing artifacts around sharp edges</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ringing Power: {(config as VHSv2Params).ringing_power}
+                    </label>
+                    <input
+                      type="range"
+                      min="2"
+                      max="7"
+                      step="1"
+                      value={(config as VHSv2Params).ringing_power}
+                      onChange={(e) => handleParameterChange('ringing_power', parseInt(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider-amber"
+                      disabled={!(config as VHSv2Params).enable_ringing}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Controls the intensity of the ringing effect when enabled</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tape Settings */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                  <span className="w-3 h-3 bg-amber-600 rounded-full mr-2"></span>
+                  Tape Settings
+                </h3>
+                <div className="max-w-md">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Tape Speed: {(config as VHSv2Params).tape_speed}
+                  </label>
+                  <select
+                    value={(config as VHSv2Params).tape_speed}
+                    onChange={(e) => handleParameterChange('tape_speed', e.target.value)}
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-200 focus:border-amber-500 text-gray-700"
+                  >
+                    <option value="SP">SP (Standard Play) - Highest quality</option>
+                    <option value="LP">LP (Long Play) - Medium quality</option>
+                    <option value="EP">EP (Extended Play) - Lowest quality</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">Simulates different VHS recording speeds and quality levels</p>
+                </div>
+              </div>
+            </div>
+          ) : isVHS ? (
             // VHS v1 Parameters
             <div className="space-y-8">
               {/* Luma Controls */}
@@ -1317,6 +1596,8 @@ export const EffectsConfigModal: React.FC<EffectsConfigModalProps> = ({
                     ? 'bg-orange-500 hover:bg-orange-600'
                     : isGSLv1
                     ? 'bg-teal-500 hover:bg-teal-600'
+                    : isTrailsV2
+                    ? 'bg-pink-500 hover:bg-pink-600'
                     : 'bg-purple-500 hover:bg-purple-600'
                 }`}
               >

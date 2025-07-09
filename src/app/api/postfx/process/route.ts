@@ -4,7 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import crypto from 'crypto';
 import { LocalVideoFileManager } from '@/lib/file-manager';
-import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params, UpscaleParams, GSLv1Params, TrailsV2Params } from '@/types/video';
+import { PostFXJob, VideoMetadata, CathodeRayParams, HalationBloomParams, VHSv1Params, VHSv2Params, UpscaleParams, GSLv1Params, TrailsV2Params } from '@/types/video';
 
 const fileManager = new LocalVideoFileManager();
 
@@ -16,8 +16,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { sourceVideoId, effect, parameters }: { 
       sourceVideoId: string; 
-      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'upscale' | 'gsl-v1' | 'trails-v2'; 
-      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params> | Partial<TrailsV2Params>
+      effect: 'cathode-ray' | 'halation-bloom' | 'vhs-v1' | 'vhs-v2' | 'upscale' | 'gsl-v1' | 'trails-v2'; 
+      parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<VHSv2Params> | Partial<UpscaleParams> | Partial<GSLv1Params> | Partial<TrailsV2Params>
     } = body;
 
     // Validate request
@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!['cathode-ray', 'halation-bloom', 'vhs-v1', 'upscale', 'gsl-v1', 'trails-v2'].includes(effect)) {
+    if (!['cathode-ray', 'halation-bloom', 'vhs-v1', 'vhs-v2', 'upscale', 'gsl-v1', 'trails-v2'].includes(effect)) {
       return NextResponse.json(
-        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1, upscale, gsl-v1, trails-v2' },
+        { error: 'Unsupported effect. Supported effects: cathode-ray, halation-bloom, vhs-v1, vhs-v2, upscale, gsl-v1, trails-v2' },
         { status: 400 }
       );
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 async function processVideoAsync(
   job: PostFXJob, 
   sourceVideo: VideoMetadata, 
-  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<UpscaleParams> | Partial<GSLv1Params> | Partial<TrailsV2Params>
+  parameters?: Partial<CathodeRayParams> | Partial<HalationBloomParams> | Partial<VHSv1Params> | Partial<VHSv2Params> | Partial<UpscaleParams> | Partial<GSLv1Params> | Partial<TrailsV2Params>
 ) {
   try {
     // Update job status
@@ -139,6 +139,22 @@ async function processVideoAsync(
       effectParams = { ...defaultParams, ...parameters };
       scriptName = 'vhs_v1_processor.py';
       effectDisplayName = 'VHS v1';
+    } else if (job.effect === 'vhs-v2') {
+      // Default parameters for VHS v2 effect
+      const defaultParams: VHSv2Params = {
+        composite_preemphasis: 4.0,
+        vhs_out_sharpen: 2.5,
+        color_bleeding: 5.0,
+        video_noise: 1000.0,
+        chroma_noise: 5000.0,
+        chroma_phase_noise: 25.0,
+        enable_ringing: true,
+        ringing_power: 2,
+        tape_speed: 'SP'
+      };
+      effectParams = { ...defaultParams, ...parameters };
+      scriptName = 'vhs_v2_processor.py';
+      effectDisplayName = 'VHS v2';
     } else if (job.effect === 'gsl-v1') {
       // Default parameters for GSL Filter v1 effect
       const defaultParams: GSLv1Params = {
